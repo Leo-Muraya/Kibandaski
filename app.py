@@ -20,12 +20,13 @@ def signup():
     email = data.get("email")
     password = data.get("password")
     
-    if not username or email or not password:
-        return jsonify({"message" : "Username or email already taken"}, 400)
     
-    existing_user = User.query((User.username == username) | (User.email == email)).first()
+    if not username or not email or not password:
+        return jsonify({"message" : "All fields (username, email, password) are required"}), 400
+    
+    existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
     if existing_user:
-        return jsonify({"message" :  "Username or email already taken"}), 400
+        return jsonify({"message" : "Username or email already taken"}), 400
     
     
     user = User(username=username, email=email)
