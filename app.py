@@ -60,6 +60,19 @@ def get_restaurants():
         for r in restaurants
     ])
 
+
+@app.route('/restaurants/<int:id>', methods=['GET'])
+def get_restaurant_by_id(id):
+    restaurant = Restaurant.query.get(id)
+    
+    if restaurant:
+        return jsonify({
+            "id": restaurant.id,
+            "name": restaurant.name,
+            "location": restaurant.location
+        }), 200
+    else:
+        return jsonify({"message": "Restaurant not found"}), 404
 @app.route('/')
 def home():
     return{"message": "Food Delivery API is running"}
