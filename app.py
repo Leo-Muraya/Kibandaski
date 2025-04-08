@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from models import db, bcrypt, User, Restaurant
+from models import db, bcrypt, User, Restaurant, Order, MenuItem, OrderFoodItem
 from flask_migrate import Migrate
 
 
@@ -51,7 +51,7 @@ def login():
     else:
         return jsonify({"error": "Invalid username/email or password"}), 401
     
-    
+#get all restaurants
 @app.route('/restaurants', methods=['GET'])
 def get_restaurants():
     restaurants = Restaurant.query.all()
@@ -60,7 +60,7 @@ def get_restaurants():
         for r in restaurants
     ])
 
-
+#get single resturant by id
 @app.route('/restaurants/<int:id>', methods=['GET'])
 def get_restaurant_by_id(id):
     restaurant = Restaurant.query.get(id)
@@ -73,6 +73,43 @@ def get_restaurant_by_id(id):
         }), 200
     else:
         return jsonify({"message": "Restaurant not found"}), 404
+    
+    
+#create an order
+# Create an order
+@app.route('/orders', methods=['POST'])
+def create_order():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    items = data.get('items')  #expected format: [{'food_id': 1, 'quantity': 2}, ...]
+
+    #create the order
+    order = Order(user_id=user_id, status='Pending', total_price=0)
+    db.session.add(order)
+    db.session.commit()
+
+    total_price = 0
+    for item in items:
+        food_id = item['food_id']  
+        quantity = item['quantity']  
+        
+        food_item = MenuItem.query.get(food_id)
+        
+        if not food_item:
+            return jsonify({"message": f"Food item with ID {food_id} not found"}), 404
+        
+        #calculate total price for this item
+        total_price += food_item.price * quantity
+        
+        # Add the food item to the order
+        order_food_item = OrderFoodItem(order_id=order.id, food_id=food_id, quantity=quantity)
+        db.session.add(order_food_item)
+    
+    #update the total price in the order
+    order.total_price = total_price
+    db.session.commit()
+
+    return jsonify({"message": "Order placed successfully", "order_id": order.id}), 201
 @app.route('/')
 def home():
     return{"message": "Food Delivery API is running"}
