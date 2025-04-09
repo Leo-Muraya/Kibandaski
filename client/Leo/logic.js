@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 // 1. Axios Configuration
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000', // Match your Flask server
+  baseURL: 'http://localhost:5000', 
   timeout: 10000
 });
 
