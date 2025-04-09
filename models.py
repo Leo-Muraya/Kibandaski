@@ -5,7 +5,6 @@ from datetime import datetime
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 
-# Association Table for Order <-> FoodItem (many-to-many with quantity)
 class OrderFoodItem(db.Model):
     __tablename__ = "order_food_items"
     
@@ -14,7 +13,7 @@ class OrderFoodItem(db.Model):
     food_item_id = db.Column(db.Integer, db.ForeignKey("food_items.id"), nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=1)
 
-# User Model
+#user Model
 class User(db.Model):
     __tablename__ = "users"
     
@@ -32,7 +31,7 @@ class User(db.Model):
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
 
-# Restaurant Model
+#restaurant Model
 class Restaurant(db.Model):
     __tablename__ = "restaurants"
     
@@ -51,7 +50,7 @@ class MenuItem(db.Model):
     price = db.Column(db.Float, nullable=False)
     restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurants.id"))
     
-# FoodItem Model
+#foodItem Model
 class FoodItem(db.Model):
     __tablename__ = "food_items"
     
@@ -63,7 +62,7 @@ class FoodItem(db.Model):
     order_items = db.relationship("OrderFoodItem", backref="food_item", cascade="all, delete-orphan")
     reviews = db.relationship("Review", backref="food_item", cascade="all, delete-orphan")
 
-# Order Model
+#order Model
 class Order(db.Model):
     __tablename__ = "orders"
     
@@ -75,7 +74,7 @@ class Order(db.Model):
 
     food_items = db.relationship("OrderFoodItem", backref="order", cascade="all, delete-orphan")
 
-# Review Model
+#review Model
 class Review(db.Model):
     __tablename__ = "reviews"
     
