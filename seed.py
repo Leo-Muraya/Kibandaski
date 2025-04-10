@@ -1,5 +1,10 @@
 from app import app
-from models import db, Restaurant, MenuItem, FoodItem
+from models import db, Restaurant, MenuItem, FoodItem, User
+
+user = User(username="john", email="john@example.com")
+user.set_password("1234") 
+db.session.add(user)
+db.session.commit()
 
 with app.app_context():
     #delete all restaurants before seeding the new ones

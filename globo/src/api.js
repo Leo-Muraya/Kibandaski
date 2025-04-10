@@ -1,6 +1,6 @@
 
 
-const API_URL = 'http://localhost:5000'; 
+const API_URL = 'http://127.0.0.1:5000'; 
 
 
 const apiRequest = async (endpoint, method = 'GET', data = null) => {
@@ -42,19 +42,19 @@ export const fetchRestaurantById = async (restaurantId) => {
   return apiRequest(`/restaurants/${restaurantId}`);
 };
 
-// Add a new item to the cart (for now, this can just be a client-side operation)
+//add a new item to the cart (for now, this can just be a client-side operation)
 export const addToCart = (item, cart) => {
   const updatedCart = [...cart, item];
   return updatedCart; // Return updated cart array
 };
 
-// Remove an item from the cart
+//remove an item from the cart
 export const removeFromCart = (itemId, cart) => {
   const updatedCart = cart.filter(item => item.id !== itemId);
   return updatedCart; // Return updated cart array
 };
 
-// Proceed to checkout (you can integrate payment API here)
+//proceed to checkout (you can integrate payment API here)
 export const checkout = async (cart, userId) => {
   const orderData = {
     userId,
@@ -65,27 +65,19 @@ export const checkout = async (cart, userId) => {
   return apiRequest('/orders', 'POST', orderData); // Assuming '/orders' is your order creation endpoint
 };
 
-// Get user order history
+//get user order history
 export const fetchOrderHistory = async (userId) => {
   return apiRequest(`/users/${userId}/orders`);
 };
 
-// User signup
+//user signup
 export const signup = async (userData) => {
   return apiRequest('/signup', 'POST', userData);
 };
 
-// User login
+//user login
 export const login = async (credentials) => {
   return apiRequest('/login', 'POST', credentials);
 };
 
-// Example API Routes for Backend (you should replace with your actual backend routes):
-// - GET /restaurants: Fetch all restaurants
-// - GET /restaurants/:id/menu: Fetch menu for a specific restaurant
-// - GET /restaurants/:id: Fetch a single restaurant
-// - POST /orders: Create a new order
-// - GET /users/:id/orders: Fetch orders for a specific user
-// - POST /signup: User signup
-// - POST /login: User login
 
