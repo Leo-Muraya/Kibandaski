@@ -6,9 +6,16 @@ function KFC() {
   const [cartItems, setCartItems] = useState([]);
 
   const menu = [
-    { name: 'Zinger Burger', price: 450 },
-    { name: 'Bucket Chicken', price: 1200 },
-    { name: 'Fries', price: 200 },
+    { name: 'Zinger Burger', price: 550 },
+  { name: 'Twister Combo', price: 650 },
+  { name: 'Chicken Bucket', price: 1200 },
+  { name: 'Wings', price: 450 },
+  { name: 'Popcorn Chicken', price: 400 },
+  { name: 'Crispy Strips', price: 500 },
+  { name: 'Masala Fries', price: 250 },
+  { name: 'Soft Drink', price: 150 },
+  { name: 'Coleslaw', price: 100 },
+  { name: 'Cheesy Chips', price: 300 },
   ];
 
   const addToCart = (item) => {
