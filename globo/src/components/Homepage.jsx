@@ -99,7 +99,6 @@ const Homepage = () => {
             <span style={{ color: "#ccc" }}>Loading...</span>
           )}
         </div>
-      </header>
 
       {/* Filters Section */}
       <section style={{ marginBottom: "2rem", display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "space-between", alignItems: "center" }}>
