@@ -3,6 +3,8 @@ import { Provider } from 'react-redux';
 import { AuthProvider, store } from './logic';
 import { Home, RestaurantDetail, Checkout } from './pages';
 import { Navbar } from './components';
+import '../styles/main.css';
+
 
 export default function App() {
   return (
