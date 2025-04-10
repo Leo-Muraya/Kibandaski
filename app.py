@@ -1,8 +1,10 @@
 from flask import Flask, jsonify, request
 from models import db, bcrypt, User, Restaurant, Order, MenuItem, OrderFoodItem, FoodItem
+from flask_cors import CORS 
 from flask_migrate import Migrate
 
 app = Flask(__name__)
+CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///food_delivery.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
