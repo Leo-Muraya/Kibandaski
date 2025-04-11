@@ -89,37 +89,37 @@ def login():
 
 
 # Protecting the homepage route using the JWT token
-@app.route('/homepage', methods=['GET'])
-def homepage():
-    token = request.headers.get('Authorization')
+# @app.route('/homepage', methods=['GET'])
+# def homepage():
+    # token = request.headers.get('Authorization')
 
     # Log the received token for debugging
-    app.logger.debug("Received token for homepage access: %s", token)
+    # app.logger.debug("Received token for homepage access: %s", token)
 
-    if not token:
-        app.logger.warning("Token is missing from request")
-        return jsonify({"error": "Token is missing"}), 401
+    # if not token:
+        # app.logger.warning("Token is missing from request")
+        # return jsonify({"error": "Token is missing"}), 401
     
-    try:
-        # Decode the token to get user information
-        decoded_token = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-        user_id = decoded_token['user_id']
-        app.logger.debug("Decoded token successfully. User ID: %s", user_id)
+    # try:
+    #     # Decode the token to get user information
+    #     decoded_token = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+    #     user_id = decoded_token['user_id']
+    #     app.logger.debug("Decoded token successfully. User ID: %s", user_id)
 
-        # Fetch the user to confirm if the token is valid
-        user = User.query.get(user_id)
-        if not user:
-            app.logger.warning("User not found. User ID: %s", user_id)
-            return jsonify({"error": "User not found"}), 404
+    #     # Fetch the user to confirm if the token is valid
+    #     user = User.query.get(user_id)
+    #     if not user:
+    #         app.logger.warning("User not found. User ID: %s", user_id)
+    #         return jsonify({"error": "User not found"}), 404
 
-        return jsonify({"message": f"Welcome {user.username} to the Food Delivery homepage!"}), 200
+    #     return jsonify({"message": f"Welcome {user.username} to the Food Delivery homepage!"}), 200
 
-    except jwt.ExpiredSignatureError:
-        app.logger.error("Token has expired")
-        return jsonify({"error": "Token has expired"}), 401
-    except jwt.InvalidTokenError as e:
-        app.logger.error("Invalid token: %s", str(e))
-        return jsonify({"error": "Invalid token"}), 401
+    # except jwt.ExpiredSignatureError:
+    #     app.logger.error("Token has expired")
+    #     return jsonify({"error": "Token has expired"}), 401
+    # except jwt.InvalidTokenError as e:
+    #     app.logger.error("Invalid token: %s", str(e))
+    #     return jsonify({"error": "Invalid token"}), 401
 
 # Home page route for the API
 @app.route('/')
