@@ -16,18 +16,30 @@ const App = () => {
     }
   }, []);
 
+  // Handle user login and store the data in localStorage
+  const handleLogin = (userData) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData)); // Store user data in localStorage
+  };
+
+  // Handle user logout and remove from localStorage
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user'); // Remove user data from localStorage
+  };
+
   return (
     <Routes>
       {/* Login route */}
-      <Route path="/login" element={<Login setUser={setUser} />} />
+      <Route path="/login" element={<Login handleLogin={handleLogin} />} />
       
       {/* Signup route */}
-      <Route path="/signup" element={<SignUp setUser={setUser} />} />
+      <Route path="/signup" element={<SignUp setUser={setUser} />} /> {/* Pass setUser here */}
       
       {/* Homepage route */}
       <Route
         path="/home"
-        element={user ? <Homepage user={user} /> : <Navigate to="/login" />}
+        element={user ? <Homepage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" />}
       />
       
       {/* Profile route */}
@@ -36,7 +48,7 @@ const App = () => {
         element={user ? <Profile user={user} /> : <Navigate to="/login" />}
       />
       
-      {/* Default route - redirect to login if not logged in */}
+      {/* Default route - redirect to home if logged in, or login if not logged in */}
       <Route path="/" element={user ? <Navigate to="/home" /> : <Navigate to="/login" />} />
     </Routes>
   );

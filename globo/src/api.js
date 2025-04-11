@@ -1,15 +1,23 @@
+const API_URL = 'http://127.0.0.1:5000';
 
-
-const API_URL = 'http://127.0.0.1:5000'; 
-
-
-const apiRequest = async (endpoint, method = 'GET', data = null) => {
+// Utility function to handle API requests
+const apiRequest = async (endpoint, method = 'GET', data = null, requiresAuth = false) => {
   const options = {
     method,
     headers: {
       'Content-Type': 'application/json',
     },
   };
+
+  // If authentication is required, include the JWT token in the Authorization header
+  if (requiresAuth) {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      options.headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      throw new Error('Authentication required');
+    }
+  }
 
   if (data) {
     options.body = JSON.stringify(data);
@@ -27,57 +35,36 @@ const apiRequest = async (endpoint, method = 'GET', data = null) => {
   }
 };
 
-//fetch all restaurants
-export const fetchRestaurants = async () => {
-  return apiRequest('/restaurants');
-};
-
-//fetch menu items for a specific restaurant
-export const fetchRestaurantMenu = async (restaurantId) => {
-  return apiRequest(`/restaurants/${restaurantId}/menu`);
-};
-
-//fetch a single restaurant by ID
-export const fetchRestaurantById = async (restaurantId) => {
-  return apiRequest(`/restaurants/${restaurantId}`);
-};
-
-//add a new item to the cart (for now, this can just be a client-side operation)
-export const addToCart = (item, cart) => {
-  const updatedCart = [...cart, item];
-  return updatedCart; // Return updated cart array
-};
-
-//remove an item from the cart
-export const removeFromCart = (itemId, cart) => {
-  const updatedCart = cart.filter(item => item.id !== itemId);
-  return updatedCart; // Return updated cart array
-};
-
-//proceed to checkout (you can integrate payment API here)
-export const checkout = async (cart, userId) => {
-  const orderData = {
-    userId,
-    items: cart,
-    totalAmount: cart.reduce((total, item) => total + item.price, 0), // Calculate total amount
-  };
-
-  return apiRequest('/orders', 'POST', orderData); // Assuming '/orders' is your order creation endpoint
-};
-
-//get user order history
-export const fetchOrderHistory = async (userId) => {
-  return apiRequest(`/users/${userId}/orders`);
-};
-
-//user signup
-export const signup = async (userData) => {
-  return apiRequest('/signup', 'POST', userData);
-};
-
-//user login
+// User login (stores JWT token in localStorage)
 export const login = async (credentials) => {
-  return apiRequest('/login', 'POST', credentials);
+  try {
+    const loginData = {
+      email: credentials.email,
+      password: credentials.password,
+    };
+
+    const response = await apiRequest('/login', 'POST', loginData);  // Send login data to backend
+    localStorage.setItem('authToken', response.token); // Assuming the token is returned in response.token
+
+    return response; 
+  } catch (error) {
+    console.error('Login failed:', error);
+    throw error;
+  }
 };
 
+// User signup (stores JWT token in localStorage)
+export const signup = async (userData) => {
+  try {
+    const response = await apiRequest('/signup', 'POST', userData);
+    return response.user; // Assuming the user data is returned in the response
+  } catch (error) {
+    console.error('Signup failed:', error);
+    throw error;
+  }
+};
 
+// Check if user is logged in by checking the presence of the JWT token
+export const checkLoginStatus = () => {
+  return !!localStorage.getItem('authToken');
+};
