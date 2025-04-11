@@ -1,18 +1,40 @@
 from flask import Flask, jsonify, request
-from models import db, bcrypt, User, Restaurant, Order, MenuItem, OrderFoodItem, FoodItem
-from flask_cors import CORS 
+from models import db, bcrypt, User, Restaurant, Order, OrderFoodItem, FoodItem
+from flask_cors import CORS
 from flask_migrate import Migrate
+import jwt
+import datetime
+import os
 
 app = Flask(__name__)
 CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///food_delivery.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key')
 
 db.init_app(app)
 bcrypt.init_app(app)
 migrate = Migrate(app, db)
 
-#sign up route
+def token_required(f):
+    def decorator(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization'].split(" ")[1]
+            
+        if not token:
+            return jsonify({"message": "Token is missing!"}), 401
+            
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_user = User.query.get(data['user_id'])
+        except:
+            return jsonify({"message": "Token is invalid!"}), 401
+            
+        return f(current_user, *args, **kwargs)
+    return decorator
+
+# Signup route
 @app.route('/signup', methods=["POST"])
 def signup():
     data = request.get_json()
@@ -20,22 +42,20 @@ def signup():
     email = data.get("email")
     password = data.get("password")
 
-    if not username or not email or not password:
-        return jsonify({"message": "All fields (username, email, password) are required"}), 400
+    if not all([username, email, password]):
+        return jsonify({"message": "All fields are required"}), 400
 
-    existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
-    if existing_user:
+    if User.query.filter((User.username == username) | (User.email == email)).first():
         return jsonify({"message": "Username or email already taken"}), 400
 
     user = User(username=username, email=email)
     user.set_password(password)
-
     db.session.add(user)
     db.session.commit()
 
     return jsonify({"message": "User created successfully"}), 201
 
-#login route
+# Login route
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -45,167 +65,125 @@ def login():
     user = User.query.filter((User.username == username_or_email) | (User.email == username_or_email)).first()
 
     if user and user.check_password(password):
-        return jsonify({"message": f"Welcome {user.username}!"}), 200
-    else:
-        return jsonify({"error": "Invalid username/email or password"}), 401
+        token = jwt.encode({
+            'user_id': user.id,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        }, app.config['SECRET_KEY'])
+        
+        return jsonify({
+            "message": f"Welcome {user.username}!",
+            "token": token,
+            "user_id": user.id
+        }), 200
+        
+    return jsonify({"error": "Invalid credentials"}), 401
 
-#get all restaurants
+# Get all restaurants
 @app.route('/restaurants', methods=['GET'])
 def get_restaurants():
     restaurants = Restaurant.query.all()
-    return jsonify([
-        {"id": r.id, "name": r.name, "location": r.location}
-        for r in restaurants
-    ])
+    return jsonify([{
+        "id": r.id, 
+        "name": r.name, 
+        "location": r.location
+    } for r in restaurants])
 
-#get a single restaurant by ID
-@app.route('/restaurants/<int:id>', methods=['GET'])
-def get_restaurant_by_id(id):
-    restaurant = Restaurant.query.get(id)
-
-    if restaurant:
-        return jsonify({
-            "id": restaurant.id,
-            "name": restaurant.name,
-            "location": restaurant.location
-        }), 200
-    else:
-        return jsonify({"message": "Restaurant not found"}), 404
-
-#create an order
-@app.route('/orders', methods=['POST'])
-def create_order():
-    data = request.get_json()
-    user_id = data.get('user_id')
-    items = data.get('items')
-
-    if not user_id or not items:
-        return jsonify({"message": "User ID and items are required"}), 400
-
-    #create the order
-    order = Order(user_id=user_id, status='Pending', total_price=0)
-    db.session.add(order)
-    db.session.commit()
-
-    total_price = 0
-    for item in items:
-        food_id = item.get('food_id')
-        quantity = item.get('quantity')
-
-        if not food_id or not quantity:
-            return jsonify({"message": "Each item must have a food_id and quantity"}), 400
-
-        food_item = MenuItem.query.get(food_id)
-
-        if not food_item:
-            return jsonify({"message": f"Food item with ID {food_id} not found"}), 404
-
-        #calculate total price for this item
-        total_price += food_item.price * quantity
-
-        #add the food item to the order
-        order_food_item = OrderFoodItem(order_id=order.id, food_item_id=food_id, quantity=quantity)
-        db.session.add(order_food_item)
-
-    #update the total price in the order
-    order.total_price = total_price
-    db.session.commit()
-
-    return jsonify({"message": "Order placed successfully", "order_id": order.id}), 201
-
-#view past orders
-@app.route('/users/<int:user_id>/orders', methods=['GET'])
-def get_user_orders(user_id):
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"message": "User not found"}), 404
-
-    orders = Order.query.filter_by(user_id=user_id).all()
-    result = []
-
-    for order in orders:
-        order_items = OrderFoodItem.query.filter_by(order_id=order.id).all()
-        item_list = []
-
-        for order_item in order_items:
-            food = FoodItem.query.get(order_item.food_item_id)
-
-            if food:
-                item_list.append({
-                    "food_name": food.name,
-                    "quantity": order_item.quantity,
-                    "price": food.price,
-                    "subtotal": food.price * order_item.quantity
-                })
-            else:
-                item_list.append({
-                    "food_name": "Unknown",
-                    "quantity": order_item.quantity,
-                    "price": 0,
-                    "subtotal": 0
-                })
-
-        result.append({
-            "order_id": order.id,
-            "status": order.status,
-            "total_price": order.total_price,
-            "timestamp": order.timestamp,
-            "items": item_list
-        })
-
-    return jsonify(result), 200
-
-#update order status
-@app.route('/orders/<int:order_id>/status', methods=['PATCH'])
-def update_order_status(order_id):
-    data = request.get_json()
-    new_status = data.get("status")
-
-    order = Order.query.get(order_id)
-
-    if not order:
-        return jsonify({"message": "Order not found"}), 404
-
-    if not new_status:
-        return jsonify({"message": "New status is required"}), 400
-
-    order.status = new_status
-    db.session.commit()
-
-    return jsonify({
-        "message": f"Order {order.id} status updated to {new_status}"
-    }), 200
-
-#get all menu items for each restaurant 
-@app.route('/restaurant/<int:restaurant_id>/menu', methods=['GET'])
-def get_menu_for_restaurant(restaurant_id):
+# Get restaurant menu
+@app.route('/restaurants/<int:restaurant_id>/menu', methods=['GET'])
+def get_restaurant_menu(restaurant_id):
     restaurant = Restaurant.query.get(restaurant_id)
     if not restaurant:
         return jsonify({"message": "Restaurant not found"}), 404
 
-    menu_items = MenuItem.query.filter_by(restaurant_id=restaurant_id).all()
+    menu_items = FoodItem.query.filter_by(restaurant_id=restaurant_id).all()
+    return jsonify([{
+        "id": item.id,
+        "name": item.name,
+        "price": item.price
+    } for item in menu_items])
 
-    if not menu_items:
-        return jsonify({"message": "No menu items found for this restaurant"}), 404
+# Create order
+@app.route('/orders', methods=['POST'])
+@token_required
+def create_order(current_user):
+    data = request.get_json()
+    items = data.get('items')
 
-    menu_data = [
-        {"id": item.id, "name": item.name, "price": item.price}
-        for item in menu_items
-    ]
+    if not items:
+        return jsonify({"message": "Items are required"}), 400
 
-    return jsonify(menu_data), 200
+    order = Order(user_id=current_user.id, status='Pending', total_price=0)
+    db.session.add(order)
+    db.session.commit()
 
-#delete order
-@app.route('/orders/<int:order_id>', methods=['DELETE'])
-def delete_order(order_id):
+    total = 0
+    for item in items:
+        food_item = FoodItem.query.get(item.get('food_id'))
+        if not food_item:
+            continue  # or return error
+
+        quantity = item.get('quantity', 1)
+        total += food_item.price * quantity
+        
+        order_item = OrderFoodItem(
+            order_id=order.id,
+            food_item_id=food_item.id,
+            quantity=quantity
+        )
+        db.session.add(order_item)
+
+    order.total_price = total
+    db.session.commit()
+
+    return jsonify({
+        "message": "Order created",
+        "order_id": order.id,
+        "total": total
+    }), 201
+
+# Get user orders
+@app.route('/orders', methods=['GET'])
+@token_required
+def get_user_orders(current_user):
+    orders = Order.query.filter_by(user_id=current_user.id).all()
+    
+    result = []
+    for order in orders:
+        items = [{
+            "food_name": item.food_item.name,
+            "quantity": item.quantity,
+            "price": item.food_item.price,
+            "subtotal": item.quantity * item.food_item.price
+        } for item in order.food_items]
+        
+        result.append({
+            "id": order.id,
+            "status": order.status,
+            "total": order.total_price,
+            "items": items,
+            "timestamp": order.timestamp
+        })
+    
+    return jsonify(result)
+
+# Update order status
+@app.route('/orders/<int:order_id>', methods=['PATCH'])
+def update_order_status(order_id):
+    data = request.get_json()
     order = Order.query.get(order_id)
+    
     if not order:
         return jsonify({"message": "Order not found"}), 404
-    db.session.delete(order)
-    db.session.commit()
-    return jsonify({"message": f"Order {order_id} deleted successfully!"}), 200
+        
+    if status := data.get('status'):
+        order.status = status
+        db.session.commit()
+        
+    return jsonify({
+        "message": "Order updated",
+        "status": order.status
+    })
 
-#home page
 @app.route('/')
 def home():
     return {"message": "Food Delivery API is running"}

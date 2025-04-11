@@ -1,89 +1,177 @@
-const API_URL = 'http://localhost:5000'; 
+// api.js (Unified API Service)
+import axios from 'axios';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
+// Axios configuration with JWT handling
+const api = axios.create({
+  baseURL: 'http://localhost:5000',
+  timeout: 10000
+});
 
-const apiRequest = async (endpoint, method = 'GET', data = null) => {
-  const options = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-  if (data) {
-    options.body = JSON.stringify(data);
-  }
-
-  try {
-    const response = await fetch(`${API_URL}${endpoint}`, options);
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
     }
-    return await response.json();
-  } catch (error) {
-    console.error('API Request Failed:', error);
-    throw error;
+    return Promise.reject(error);
   }
-};
+);
 
-//fetch all restaurants
-export const fetchRestaurants = async () => {
-  return apiRequest('/restaurants');
-};
+// Authentication Context
+const AuthContext = createContext();
 
-//fetch menu items for a specific restaurant
-export const fetchRestaurantMenu = async (restaurantId) => {
-  return apiRequest(`/restaurants/${restaurantId}/menu`);
-};
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-//fetch a single restaurant by ID
-export const fetchRestaurantById = async (restaurantId) => {
-  return apiRequest(`/restaurants/${restaurantId}`);
-};
-
-// Add a new item to the cart (for now, this can just be a client-side operation)
-export const addToCart = (item, cart) => {
-  const updatedCart = [...cart, item];
-  return updatedCart; // Return updated cart array
-};
-
-// Remove an item from the cart
-export const removeFromCart = (itemId, cart) => {
-  const updatedCart = cart.filter(item => item.id !== itemId);
-  return updatedCart; // Return updated cart array
-};
-
-// Proceed to checkout (you can integrate payment API here)
-export const checkout = async (cart, userId) => {
-  const orderData = {
-    userId,
-    items: cart,
-    totalAmount: cart.reduce((total, item) => total + item.price, 0), // Calculate total amount
+  const login = async credentials => {
+    try {
+      const { data } = await api.post('/login', credentials);
+      localStorage.setItem('token', data.accessToken);
+      setUser(data.user);
+      return data.user;
+    } catch (error) {
+      throw error.response?.data?.error || 'Login failed';
+    }
   };
 
-  return apiRequest('/orders', 'POST', orderData); // Assuming '/orders' is your order creation endpoint
+  const signup = async userData => {
+    try {
+      const { data } = await api.post('/signup', userData);
+      localStorage.setItem('token', data.accessToken);
+      setUser(data.user);
+      return data.user;
+    } catch (error) {
+      throw error.response?.data?.error || 'Registration failed';
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+  };
+
+  useEffect(() => {
+    const verifySession = async () => {
+      try {
+        const { data } = await api.get('/me');
+        setUser(data);
+      } catch (error) {
+        logout();
+      } finally {
+        setLoading(false);
+      }
+    };
+    verifySession();
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, logout, signup }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export const useAuth = () => useContext(AuthContext);
+
+// Redux Cart Store
+const cartSlice = createSlice({
+  name: 'cart',
+  initialState: {
+    items: [],
+    restaurantId: null
+  },
+  reducers: {
+    addItem: (state, action) => {
+      const existingItem = state.items.find(
+        item => item.itemId === action.payload.itemId
+      );
+      existingItem 
+        ? existingItem.quantity += action.payload.quantity
+        : state.items.push(action.payload);
+    },
+    removeItem: (state, action) => {
+      state.items = state.items.filter(item => item.itemId !== action.payload);
+    },
+    setRestaurant: (state, action) => {
+      if (state.restaurantId !== action.payload) state.items = [];
+      state.restaurantId = action.payload;
+    },
+    clearCart: state => {
+      state.items = [];
+      state.restaurantId = null;
+    }
+  }
+});
+
+export const { addItem, removeItem, setRestaurant, clearCart } = cartSlice.actions;
+
+export const store = configureStore({
+  reducer: {
+    cart: cartSlice.reducer
+  }
+});
+
+// API Services
+export const restaurantService = {
+  getAll: async () => (await api.get('/restaurants')).data,
+  getById: async id => (await api.get(`/restaurants/${id}`)).data,
+  getMenu: async restaurantId => 
+    (await api.get(`/restaurants/${restaurantId}/menu`)).data
 };
 
-// Get user order history
-export const fetchOrderHistory = async (userId) => {
-  return apiRequest(`/users/${userId}/orders`);
+export const orderService = {
+  create: async cart => {
+    const orderData = {
+      restaurantId: cart.restaurantId,
+      items: cart.items.map(({ itemId, quantity }) => ({ itemId, quantity }))
+    };
+    return (await api.post('/orders', orderData)).data;
+  },
+  getHistory: async () => (await api.get('/orders')).data
 };
 
-// User signup
-export const signup = async (userData) => {
-  return apiRequest('/signup', 'POST', userData);
+// Utility Components
+export const useAsync = (asyncFunction) => {
+  const [status, setStatus] = useState('idle');
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+
+  const execute = async (...args) => {
+    setStatus('pending');
+    try {
+      const result = await asyncFunction(...args);
+      setData(result);
+      setStatus('success');
+      return result;
+    } catch (error) {
+      setError(error);
+      setStatus('error');
+      throw error;
+    }
+  };
+
+  return { execute, data, status, error };
 };
 
-// User login
-export const login = async (credentials) => {
-  return apiRequest('/login', 'POST', credentials);
+export const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) navigate('/login');
+  }, [user, loading, navigate]);
+
+  return user ? children : null;
 };
-
-// Example API Routes for Backend (you should replace with your actual backend routes):
-// - GET /restaurants: Fetch all restaurants
-// - GET /restaurants/:id/menu: Fetch menu for a specific restaurant
-// - GET /restaurants/:id: Fetch a single restaurant
-// - POST /orders: Create a new order
-// - GET /users/:id/orders: Fetch orders for a specific user
-// - POST /signup: User signup
-// - POST /login: User login
-
