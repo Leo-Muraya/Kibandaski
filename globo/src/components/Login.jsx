@@ -5,28 +5,20 @@ import { login } from '../api'; // Assuming you have the login API method
 const Login = ({ setUser }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null); // For handling error messages
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
-      // Send email as username_or_email in the request body
-      const response = await login({ username_or_email: email, password });
+     
+      const response = await login({ username: email, password });
 
-      // Check if the response contains a token
       if (response.token) {
-        // Save the token in localStorage
         localStorage.setItem('token', response.token);
-
-        // Optionally save the user data as well
         localStorage.setItem('user', JSON.stringify({ username: response.username, email }));
-
-        // Set the user data in the app state
         setUser({ username: response.username, email });
-
-        // Redirect to homepage
         navigate('/home');
       } else {
         setError('Invalid credentials, please try again.');
@@ -70,25 +62,25 @@ const Login = ({ setUser }) => {
 
 const styles = {
   wrapper: {
-    backgroundImage: 'url(https://teamnutrition.ca/sites/default/files/articles/Inte%CC%81rieur%20restaurant%20-%20Restaurant%20interior.jpeg)', // Replace with your image URL or local path
+    backgroundImage: 'url(https://teamnutrition.ca/sites/default/files/articles/Inte%CC%81rieur%20restaurant%20-%20Restaurant%20interior.jpeg)',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    minHeight: '100vh', // Ensure it covers the entire height of the viewport
+    minHeight: '100vh',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: '20px', // Optional padding around the container
+    padding: '20px',
   },
   loginContainer: {
-    backgroundColor: '#fff', // White background for the form container
+    backgroundColor: '#fff',
     padding: '40px',
     borderRadius: '8px',
     width: '100%',
     maxWidth: '400px',
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-    color: 'black', // Text color for the form
+    color: 'black',
     textAlign: 'center',
-    zIndex: 1, // Make sure it's above the background image
+    zIndex: 1,
   },
   header: {
     fontSize: '2rem',

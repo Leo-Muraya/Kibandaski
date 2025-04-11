@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { signup } from '../api'; // Assuming you have the signup API method
 
 const SignUp = ({ setUser }) => {
-  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -11,17 +11,16 @@ const SignUp = ({ setUser }) => {
   const handleSignUp = async (e) => {
     e.preventDefault();
 
-    // Call your API to create a new user
     try {
-      const newUser = await signup({ name, email, password });
+      const newUser = await signup({ username, email, password });
 
       // Store new user data in localStorage
       localStorage.setItem('user', JSON.stringify(newUser));
 
-      // Set the user data in app state
+      // Set user in app state
       setUser(newUser);
 
-      // Redirect to login after successful signup
+      // Redirect to login page
       navigate('/login');
     } catch (error) {
       alert('Signup failed. Please try again.');
@@ -36,9 +35,9 @@ const SignUp = ({ setUser }) => {
           <input
             style={styles.input}
             type="text"
-            placeholder="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
           />
           <input
@@ -59,7 +58,10 @@ const SignUp = ({ setUser }) => {
           />
           <button type="submit" style={styles.button}>Sign Up</button>
         </form>
-        <p style={styles.text}>Already have an account? <a href="/login" style={styles.link}>Login</a></p>
+        <p style={styles.text}>
+          Already have an account?{' '}
+          <a href="/login" style={styles.link}>Login</a>
+        </p>
       </div>
     </div>
   );
@@ -67,25 +69,25 @@ const SignUp = ({ setUser }) => {
 
 const styles = {
   wrapper: {
-    backgroundImage: 'url(https://teamnutrition.ca/sites/default/files/articles/Inte%CC%81rieur%20restaurant%20-%20Restaurant%20interior.jpeg)', // Replace with your image URL or local path
+    backgroundImage: 'url(https://teamnutrition.ca/sites/default/files/articles/Inte%CC%81rieur%20restaurant%20-%20Restaurant%20interior.jpeg)',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    minHeight: '100vh', // Ensure it covers the entire height of the viewport
+    minHeight: '100vh',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: '20px', // Optional padding around the container
+    padding: '20px',
   },
   signupContainer: {
-    backgroundColor: '#000', // Black background for the form container
+    backgroundColor: '#000',
     padding: '40px',
     borderRadius: '8px',
     width: '100%',
     maxWidth: '400px',
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-    color: 'white', // Text color for the form
+    color: 'white',
     textAlign: 'center',
-    zIndex: 1, // Make sure it's above the background image
+    zIndex: 1,
   },
   header: {
     fontSize: '2rem',
@@ -118,7 +120,7 @@ const styles = {
   link: {
     color: '#f39c12',
     textDecoration: 'none',
-  }
+  },
 };
 
 export default SignUp;

@@ -9,7 +9,6 @@ const apiRequest = async (endpoint, method = 'GET', data = null, requiresAuth = 
     },
   };
 
-  // If authentication is required, include the JWT token in the Authorization header
   if (requiresAuth) {
     const token = localStorage.getItem('authToken');
     if (token) {
@@ -26,7 +25,8 @@ const apiRequest = async (endpoint, method = 'GET', data = null, requiresAuth = 
   try {
     const response = await fetch(`${API_URL}${endpoint}`, options);
     if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(errorText || 'API Error');
     }
     return await response.json();
   } catch (error) {
@@ -35,36 +35,48 @@ const apiRequest = async (endpoint, method = 'GET', data = null, requiresAuth = 
   }
 };
 
-// User login (stores JWT token in localStorage)
+// --------- AUTH ----------
+export const signup = async (userInfo) => {
+  return await apiRequest('/signup', 'POST', userInfo);
+};
+
 export const login = async (credentials) => {
-  try {
-    const loginData = {
-      email: credentials.email,
-      password: credentials.password,
-    };
-
-    const response = await apiRequest('/login', 'POST', loginData);  // Send login data to backend
-    localStorage.setItem('authToken', response.token); // Assuming the token is returned in response.token
-
-    return response; 
-  } catch (error) {
-    console.error('Login failed:', error);
-    throw error;
-  }
+  const response = await apiRequest('/login', 'POST', credentials);
+  localStorage.setItem('authToken', response.token);
+  return response;
 };
 
-// User signup (stores JWT token in localStorage)
-export const signup = async (userData) => {
-  try {
-    const response = await apiRequest('/signup', 'POST', userData);
-    return response.user; // Assuming the user data is returned in the response
-  } catch (error) {
-    console.error('Signup failed:', error);
-    throw error;
-  }
-};
-
-// Check if user is logged in by checking the presence of the JWT token
 export const checkLoginStatus = () => {
   return !!localStorage.getItem('authToken');
+};
+
+export const logout = () => {
+  localStorage.removeItem('authToken');
+};
+
+// --------- RESTAURANTS ----------
+export const fetchRestaurants = async () => {
+  return await apiRequest('/restaurants');
+};
+
+export const fetchRestaurantMenu = async (restaurantId) => {
+  return await apiRequest(`/restaurants/${restaurantId}/menu`);
+};
+
+// --------- ORDERS ----------
+export const createOrder = async (items) => {
+  // items: [{ food_id: 1, quantity: 2 }, ...]
+  return await apiRequest('/orders', 'POST', { items }, true);
+};
+
+export const fetchUserOrders = async () => {
+  return await apiRequest('/orders', 'GET', null, true);
+};
+
+export const updateOrderStatus = async (orderId, status) => {
+  return await apiRequest(`/orders/${orderId}`, 'PATCH', { status }, true);
+};
+
+export const removeOrderItem = async (orderId, foodItemId) => {
+  return await apiRequest(`/orders/${orderId}/items/${foodItemId}`, 'DELETE', null, true);
 };
