@@ -5,20 +5,28 @@ const Homepage = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  // Check if the user is logged in and retrieve user info from localStorage
+  // Check if the user is logged in by verifying the JWT token
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('user'));
-    if (userData) {
-      setUser(userData);
-    } else {
-      // If no user is found in localStorage, redirect to login
+    const token = localStorage.getItem('authToken'); // Retrieve the token from localStorage
+
+    if (!token) {
+      // If no token is found, redirect to login
       navigate('/login');
+    } else {
+      // If token exists, verify it or decode it to get user data (for simplicity, assume the token has user info)
+      const userData = JSON.parse(localStorage.getItem('user')); // Retrieve user info (you can also decode the token here if needed)
+      if (userData) {
+        setUser(userData);
+      } else {
+        navigate('/login');
+      }
     }
   }, [navigate]);
 
   // Logout function
   const handleLogout = () => {
-    localStorage.removeItem('user');  // Remove user info from localStorage
+    localStorage.removeItem('authToken');  // Remove the token from localStorage
+    localStorage.removeItem('user');   // Remove user info from localStorage
     setUser(null);  // Clear the user state
     navigate('/login');  // Redirect to login page
   };
