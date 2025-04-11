@@ -1,10 +1,9 @@
-import { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 
-function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+const Navbar = () => {
   return (
+<<<<<<< HEAD
     <nav className="fixed w-full z-50 bg-neutral-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
@@ -60,8 +59,19 @@ function Navbar() {
           </div>
         </div>
       )}
+=======
+    <nav className="bg-white shadow-md">
+      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <h1 className="text-xl font-bold text-blue-600">FoodApp</h1>
+        <div className="space-x-4">
+          <Link to="/" className="text-gray-700 hover:text-blue-600">Home</Link>
+          <Link to="/restaurant" className="text-gray-700 hover:text-blue-600">Restaurants</Link>
+          <Link to="/checkout" className="text-gray-700 hover:text-blue-600">Checkout</Link>
+        </div>
+      </div>
+>>>>>>> 9c0581ce87318342e0b71cb9fd3650a2bf12f714
     </nav>
   );
-}
+};
 
 export default Navbar;
