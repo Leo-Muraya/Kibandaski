@@ -42,6 +42,7 @@ class Restaurant(db.Model):
     
     food_items = db.relationship("FoodItem", backref="restaurant", cascade="all, delete-orphan")
     
+<<<<<<< HEAD:server/models.py
     
 class MenuItem(db.Model):
     __tablename__ = "menu_items"
@@ -52,6 +53,10 @@ class MenuItem(db.Model):
     restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurants.id"))
     
 # FoodItem Model
+=======
+
+
+>>>>>>> da284935ad2844064f046a972ace2b26c96d0c94:models.py
 class FoodItem(db.Model):
     __tablename__ = "food_items"
     

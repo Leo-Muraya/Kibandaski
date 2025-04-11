@@ -3,7 +3,12 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import SignUp from './components/Signup';
 import Login from './components/Login';
 import Homepage from './components/Homepage';
+<<<<<<< HEAD
 import Profile from './components/Profile';  // New Profile Component
+=======
+import RestaurantPage from './Restaurantpage'; 
+import { RestaurantDetail } from './components/RestrauntDetails';
+>>>>>>> da284935ad2844064f046a972ace2b26c96d0c94
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -30,6 +35,7 @@ const App = () => {
 
   return (
     <Routes>
+<<<<<<< HEAD
       {/* Login route */}
       <Route path="/login" element={<Login handleLogin={handleLogin} />} />
       
@@ -50,6 +56,13 @@ const App = () => {
       
       {/* Default route - redirect to home if logged in, or login if not logged in */}
       <Route path="/" element={user ? <Navigate to="/home" /> : <Navigate to="/login" />} />
+=======
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/home" element={<Homepage />} />
+      <Route path="/restaurant/:id" element={<RestaurantPage />} /> 
+      <Route path="/restaurant/:id/menu" element={<RestaurantDetail/>} />
+>>>>>>> da284935ad2844064f046a972ace2b26c96d0c94
     </Routes>
   );
 };
