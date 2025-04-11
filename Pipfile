@@ -4,10 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+<<<<<<< HEAD
 flask-migrate = "*"
+=======
+flask-sqlalchemy = "*"
+flask-migrate = "*"
+flask = "*"
+>>>>>>> 56020be08d726a5ab1067a23c16fdfc33fc48603
 flask-bcrypt = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.12"
+python_version = "3.8.13"
