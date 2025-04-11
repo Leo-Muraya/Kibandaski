@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from models import db, bcrypt, User, Restaurant, Order, OrderFoodItem, FoodItem
+from models import db, bcrypt, User, Restaurant, Order, MenuItem, OrderFoodItem, FoodItem
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token
@@ -46,6 +46,11 @@ def token_required(f):
 @app.route('/signup', methods=["POST"])
 def signup():
     data = request.get_json()
+
+    # Log the received data for debugging
+    print("Received data:", data)  # This will log the data to the console
+    
+    # Ensure that username, email, and password are provided
     username = data.get("username")
     email = data.get("email")
     password = data.get("password")
@@ -53,24 +58,45 @@ def signup():
     if not all([username, email, password]):
         return jsonify({"message": "All fields are required"}), 400
 
-    if User.query.filter((User.username == username) | (User.email == email)).first():
+    # Check if the username or email already exists
+    existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+    if existing_user:
         return jsonify({"message": "Username or email already taken"}), 400
 
+    # Create a new user
     user = User(username=username, email=email)
-    user.set_password(password)
-    db.session.add(user)
-    db.session.commit()
+    user.set_password(password)  # Hash the password using bcrypt
 
-    return jsonify({"message": "User created successfully"}), 201
+    # Save the user to the database
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()  # Rollback in case of error
+        print(f"Error saving user: {str(e)}")  # Log the error
+        return jsonify({"message": f"Error: {str(e)}"}), 500
+
+    # Return a success message with user data
+    return jsonify({"message": "User created successfully", "user": {"username": user.username, "email": user.email}}), 201
 
 # Login
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    username = data.get('username')
+
+    # Log the received data for debugging
+    app.logger.debug("Login request data: %s", data)
+
+    email = data.get('email')  # Only use email for login
     password = data.get('password')
 
-    user = User.query.filter_by(username=username).first()
+    # Check if the required fields are missing
+    if not email or not password:
+        app.logger.warning("Missing email or password. Email: %s, Password: %s", email, password)
+        return jsonify({"message": "Email and password are required"}), 400
+
+    # Query user by email only
+    user = User.query.filter_by(email=email).first()
 
     if user and user.check_password(password):
         access_token = create_access_token(identity=user.id)
@@ -218,7 +244,8 @@ def update_order_status(order_id):
 
 @app.route('/')
 def home():
-    return {"message": "Food Delivery API is running"}
+    app.logger.info("Home route accessed.")
+    return jsonify({"message": "Food Delivery API is running"})
 
 if __name__ == "__main__":
     app.run(debug=True)

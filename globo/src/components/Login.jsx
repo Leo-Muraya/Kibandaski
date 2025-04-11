@@ -171,4 +171,70 @@ const Login = () => {
   );
 };
 
+const styles = {
+  wrapper: {
+    backgroundImage: 'url(https://teamnutrition.ca/sites/default/files/articles/Inte%CC%81rieur%20restaurant%20-%20Restaurant%20interior.jpeg)', // Replace with your image URL or local path
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    minHeight: '100vh', // Ensure it covers the entire height of the viewport
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '20px', // Optional padding around the container
+  },
+  loginContainer: {
+    backgroundColor: '#fff', // White background for the form container
+    padding: '40px',
+    borderRadius: '8px',
+    width: '100%',
+    maxWidth: '400px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+    color: 'black', // Text color for the form
+    textAlign: 'center',
+    zIndex: 1, // Make sure it's above the background image
+  },
+  header: {
+    fontSize: '2rem',
+    marginBottom: '10px',
+  },
+  subtitle: {
+    fontSize: '1rem',
+    color: '#aaa',
+    marginBottom: '20px',
+  },
+  input: {
+    width: '100%',
+    padding: '10px',
+    margin: '10px 0',
+    borderRadius: '4px',
+    border: '1px solid #ccc',
+    backgroundColor: '#f5f5f5',
+    color: 'black',
+    fontSize: '16px',
+  },
+  button: {
+    width: '100%',
+    padding: '10px',
+    backgroundColor: '#f39c12',
+    border: 'none',
+    color: 'white',
+    fontSize: '16px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  error: {
+    color: '#e74c3c',
+    fontSize: '14px',
+    marginTop: '10px',
+  },
+  text: {
+    marginTop: '10px',
+    color: '#aaa',
+  },
+  link: {
+    color: '#f39c12',
+    textDecoration: 'none',
+  }
+};
+
 export default Login;
