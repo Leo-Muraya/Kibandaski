@@ -51,6 +51,7 @@ A full-stack food delivery application inspired by Glovo, built with Flask (Pyth
 - npm 8+
 
 ### Backend Setup
+
 ```bash
 cd backend
 python -m venv venv
@@ -68,3 +69,56 @@ python seed.py
 # Start server
 flask run
 ```
+
+### Frontend setup
+
+```bash
+cd frontend
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env to point to your backend
+
+# Start development server
+npm run dev
+```
+
+### Usage
+
+- Register a new account
+
+- Browse restaurants
+
+- Select items from restaurant menu
+
+- Review your cart
+
+- Checkout and track order status
+
+### Authors
+
+Leo Muraya, Victor Ngae, Elvis Kuria, Salma Hagi, Mitch Kamau, Daniel Mutembei
+
+### Contributing
+- Fork the project
+
+- Create your feature branch (git checkout -b feature/amazing-feature)
+
+- Commit your changes (git commit -m 'Add some amazing feature')
+
+- Push to the branch (git push origin feature/amazing-feature)
+
+- Open a Pull Request
+
+### License
+
+Distributed under the MIT License. See LICENSE for more information.
+
+### Acknowledgements
+
+- Inspired by Glovo/UberEats food delivery systems
+
+- Built with guidance from various software architecture patterns
+
+- Test data from Nairobi restaurant scene

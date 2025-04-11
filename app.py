@@ -203,7 +203,7 @@ def remove_item_from_order(current_user, order_id, item_id):
 def update_order_status(order_id):
     data = request.get_json()
     order = Order.query.get(order_id)
-
+    
     if not order:
         return jsonify({"message": "Order not found"}), 404
 

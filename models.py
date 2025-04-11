@@ -42,16 +42,8 @@ class Restaurant(db.Model):
     image = db.Column(db.String(200), nullable=True)
     food_items = db.relationship("FoodItem", backref="restaurant", cascade="all, delete-orphan")
     
-    
-class MenuItem(db.Model):
-    __tablename__ = "menu_items"
-    
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurants.id"))
-    
-#foodItem Model
+
+
 class FoodItem(db.Model):
     __tablename__ = "food_items"
     
