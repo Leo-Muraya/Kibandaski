@@ -36,13 +36,13 @@ const App = () => {
       {/* Signup route */}
       <Route path="/signup" element={<SignUp setUser={setUser} />} /> {/* Pass setUser here */}
       
-      {/* Homepage route */}
+      {/* Homepage route, redirect to login if no user */}
       <Route
         path="/home"
         element={user ? <Homepage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" />}
       />
       
-      {/* Profile route */}
+      {/* Profile route, redirect to login if no user */}
       <Route
         path="/profile"
         element={user ? <Profile user={user} /> : <Navigate to="/login" />}

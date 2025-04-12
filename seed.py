@@ -1,31 +1,36 @@
 from app import app
 from models import db, Restaurant, MenuItem, FoodItem, User
 
-user = User(username="john", email="john@example.com")
-user.set_password("1234") 
-db.session.add(user)
-db.session.commit()
+with app.app_context():  # Wrap database operations inside the application context
+    # Check if the user already exists before adding
+    existing_user = User.query.filter_by(email="john@example.com").first()
+    if not existing_user:
+        user = User(username="john", email="john@example.com")
+        user.set_password("1234")
+        db.session.add(user)
+        db.session.commit()
+        print("User 'john@example.com' added successfully!")
+    else:
+        print("User 'john@example.com' already exists.")
 
-with app.app_context():
-    #delete all restaurants before seeding the new ones
+    # Delete all restaurants before seeding new ones
     db.session.query(Restaurant).delete()
     db.session.commit()
 
-    #create a list of restaurants
+    # Create a list of restaurants with ratings and image URLs
     restaurants = [
-        Restaurant(name="Dau Swahili Restaurant", location="Nairobi, Kingari Rd"),
-        Restaurant(name="KFC", location="Nairobi, along Ngong Road"),
-        Restaurant(name="Khum Indian Cuisine", location="Nairobi, along Waiyaki Way"),
-        Restaurant(name="Java Restaurant", location="Nairobi, Westlands"),
-        Restaurant(name="Exodus Restaurant", location="Nairobi, Plaza Jay"),
+        Restaurant(name="Dau Swahili Restaurant", location="Nairobi, Kingari Rd", rating=4.5, image="https://tb-static.uber.com/prod/image-proc/processed_images/98b402e3194a38ac4afe58443aaa9776/9e31c708e4cf73b6e3ea1bd4a9b6e16b.webp"),
+        Restaurant(name="KFC", location="Nairobi, along Ngong Road", rating=3.8, image="https://tb-static.uber.com/prod/image-proc/processed_images/6832b9add2695d876619c4c2d5924ffc/30be7d11a3ed6f6183354d1933fbb6c7.jpeg"),
+        Restaurant(name="Khum Indian Cuisine", location="Nairobi, along Waiyaki Way", rating=4.2, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvOobWnO7wbRjjfA-wGdAdnrPlULCZ6k0L2w&s"),
+        Restaurant(name="Java Restaurant", location="Nairobi, Westlands", rating=4.0, image="https://media.cafejavas.co.ug/categoryImages/1722067976.png"),
+        Restaurant(name="Exodus Restaurant", location="Nairobi, Plaza Jay", rating=3.9, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYuMCo40occCxwUnXVHOkHYKoynmrGf_0jZA&s"),
     ]
 
     db.session.add_all(restaurants)
     db.session.commit()
-
     print("Restaurants added successfully!")
 
-    #mapping of restaurants to their respective menu items
+    # Mapping of restaurants to their respective menu items
     restaurants_with_foods = {
         "Dau Swahili Restaurant": [
             ("Pilau", 250), ("Chapati Ndengu", 200), ("Biriani", 300), ("Samaki wa Kupaka", 400),
@@ -54,7 +59,7 @@ with app.app_context():
         ]
     }
 
-    #add menu items to the db
+    # Add menu items to the database
     for restaurant in restaurants:
         food_list = restaurants_with_foods.get(restaurant.name, [])
         for food_name, price in food_list:
@@ -64,8 +69,8 @@ with app.app_context():
     db.session.commit()
     print("Menu items added successfully!")
 
+    # Copy menu items to food_items table
     menu_items = MenuItem.query.all()
-
     for item in menu_items:
         existing = FoodItem.query.filter_by(name=item.name, restaurant_id=item.restaurant_id).first()
         if not existing:
@@ -77,4 +82,4 @@ with app.app_context():
             db.session.add(food_item)
 
     db.session.commit()
-    print(" Menu items copied to food_items table successfully!")
+    print("Menu items copied to food_items table successfully!")

@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from models import db, bcrypt, User, Restaurant, Order, OrderFoodItem, FoodItem
 from flask_cors import CORS
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager, create_access_token
 import jwt
 import datetime
 import os
@@ -9,14 +10,20 @@ from functools import wraps
 
 app = Flask(__name__)
 CORS(app)
+
+# Config
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///food_delivery.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key')
+app.config['JWT_SECRET_KEY'] = app.config['SECRET_KEY']  # for flask_jwt_extended
 
+# Init extensions
 db.init_app(app)
 bcrypt.init_app(app)
 migrate = Migrate(app, db)
+jwt = JWTManager(app)
 
+# ---------------- AUTH DECORATOR ----------------
 def token_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
@@ -32,6 +39,8 @@ def token_required(f):
             return jsonify({"message": "Token is invalid!"}), 401
         return f(current_user, *args, **kwargs)
     return decorator
+
+# ---------------- ROUTES ----------------
 
 # Signup
 @app.route('/signup', methods=["POST"])
@@ -58,24 +67,21 @@ def signup():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    username_or_email = data.get('username')
-    password = data.get('password')   
+    username = data.get('username')
+    password = data.get('password')
 
-    user = User.query.filter((User.username == username_or_email) | (User.email == username_or_email)).first()
+    user = User.query.filter_by(username=username).first()
 
     if user and user.check_password(password):
-        token = jwt.encode({
-            'user_id': user.id,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
-        }, app.config['SECRET_KEY'])
-
+        access_token = create_access_token(identity=user.id)
         return jsonify({
-            "message": f"Welcome {user.username}!",
-            "token": token,
-            "user_id": user.id
+            "token": access_token,
+            "user_id": user.id,
+            "username": user.username,
+            "message": "Login successful"
         }), 200
-
-    return jsonify({"error": "Invalid credentials"}), 401
+    else:
+        return jsonify({"error": "Invalid username or password"}), 401
 
 # Get all restaurants
 @app.route('/restaurants', methods=['GET'])
@@ -84,8 +90,12 @@ def get_restaurants():
     return jsonify([{
         "id": r.id, 
         "name": r.name, 
-        "location": r.location
+        "location": r.location,
+        # "image": r.image,   # Assuming you have an `image` field in your Restaurant model
+        # "status": r.status, # Assuming you have a `status` field in your Restaurant model
+        "rating": r.rating  # Assuming you have a `rating` field in your Restaurant model
     } for r in restaurants])
+
 
 # Get menu
 @app.route('/restaurants/<int:restaurant_id>/menu', methods=['GET'])

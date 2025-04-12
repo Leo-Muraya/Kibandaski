@@ -42,9 +42,17 @@ export const signup = async (userInfo) => {
 
 export const login = async (credentials) => {
   const response = await apiRequest('/login', 'POST', credentials);
-  localStorage.setItem('authToken', response.token);
+
+  // Confirm the structure is what we expect
+  if (response && response.token) {
+    localStorage.setItem('authToken', response.token);
+  } else {
+    throw new Error('Invalid login response: missing token');
+  }
+
   return response;
 };
+
 
 export const checkLoginStatus = () => {
   return !!localStorage.getItem('authToken');

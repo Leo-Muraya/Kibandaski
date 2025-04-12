@@ -29,6 +29,7 @@ const SignUp = ({ setUser }) => {
 
   return (
     <div style={styles.wrapper}>
+      <div style={styles.backgroundLayer}></div>
       <div style={styles.signupContainer}>
         <h2 style={styles.header}>Sign Up</h2>
         <form onSubmit={handleSignUp}>
@@ -77,6 +78,17 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     padding: '20px',
+    position: 'relative',
+  },
+  backgroundLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0, 0, 0, 0.5)', // Darken the background a bit
+    backdropFilter: 'blur(5px)', // Applying the blur effect to the background
+    zIndex: 0, // Ensures the background layer is below the form container
   },
   signupContainer: {
     backgroundColor: '#000',
