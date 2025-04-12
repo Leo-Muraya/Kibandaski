@@ -97,8 +97,9 @@ npm run dev
 - Checkout and track order status
 
 ### Authors
-
-Leo Muraya, Victor Ngae, Elvis Kuria, Salma Hagi, Mitch Kamau, Daniel Mutembei
+``` bash
+ Leo Muraya, Victor Ngae, Elvis Kuria, Salma Hagi, Mitch Kamau, Daniel Mutembei
+```
 
 ### Contributing
 - Fork the project
