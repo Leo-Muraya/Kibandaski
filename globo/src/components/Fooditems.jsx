@@ -1,24 +1,36 @@
-import { useDispatch } from 'react-redux';
-import { addItem } from '../api';
+import { useSelector } from 'react-redux';
 
-export const FoodItem = ({ item }) => {
-  const dispatch = useDispatch();
+const Cart = () => {
+  const cartItems = useSelector((state) => state.cart.items);  // Access cart state from Redux
+
+  // Calculate total price of all items in the cart
+  const totalPrice = cartItems.reduce((acc, item) => acc + item.quantity * item.price, 0);
 
   return (
-    <div className="bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
-      <h4 className="font-bold text-gray-800">{item.name}</h4>
-      <p className="text-gray-600 mt-1">${item.price.toFixed(2)}</p>
-      <button
-        onClick={() => dispatch(addItem({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: 1
-        }))}
-        className="mt-3 bg-accent text-white px-4 py-2 rounded hover:bg-accent-dark transition-colors"
-      >
-        Add to Cart
-      </button>
+    <div className="p-4">
+      <h2 className="text-2xl font-bold">Your Cart</h2>
+      <ul className="mt-4">
+        {cartItems.length > 0 ? (
+          cartItems.map(item => (
+            <li key={item.id} className="mb-4">
+              <div className="flex justify-between">
+                <span>{item.name}</span>
+                <span>{item.quantity} x ${item.price.toFixed(2)}</span>
+                <span>${(item.quantity * item.price).toFixed(2)}</span>
+              </div>
+            </li>
+          ))
+        ) : (
+          <p>Your cart is empty.</p>
+        )}
+      </ul>
+      {cartItems.length > 0 && (
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold">Total: ${totalPrice.toFixed(2)}</h3>
+        </div>
+      )}
     </div>
   );
 };
+
+export default Cart;
