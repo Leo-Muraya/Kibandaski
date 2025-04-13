@@ -3,53 +3,54 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import SignUp from './components/Signup';
 import Login from './components/Login';
 import Homepage from './components/Homepage';
-import Profile from './components/Profile';  // New Profile Component
+import Profile from './components/Profile';
+import RestaurantPage from './Restaurantpage'; // Add this
+import Cart from './components/Cart'; // Add this
+import './App.css'; // Add this at the top
 
 const App = () => {
   const [user, setUser] = useState(null);
 
-  // Check if the user is logged in on app load
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user'));
-    if (userData) {
+    const token = localStorage.getItem('authToken'); // Check for token
+    if (userData && token) {
       setUser(userData);
     }
   }, []);
 
-  // Handle user login and store the data in localStorage
   const handleLogin = (userData) => {
     setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData)); // Store user data in localStorage
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('authToken', userData.token); // Store token
   };
 
-  // Handle user logout and remove from localStorage
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem('user'); // Remove user data from localStorage
+    localStorage.removeItem('user');
+    localStorage.removeItem('authToken'); // Remove token
   };
 
   return (
     <Routes>
-      {/* Login route */}
       <Route path="/login" element={<Login handleLogin={handleLogin} />} />
+      <Route path="/signup" element={<SignUp setUser={setUser} />} />
       
-      {/* Signup route */}
-      <Route path="/signup" element={<SignUp setUser={setUser} />} /> {/* Pass setUser here */}
-      
-      {/* Homepage route, redirect to login if no user */}
-      <Route
-        path="/home"
-        element={user ? <Homepage user={user} handleLogout={handleLogout} /> : <Navigate to="/login" />}
-      />
-      
-      {/* Profile route, redirect to login if no user */}
-      <Route
-        path="/profile"
-        element={user ? <Profile user={user} /> : <Navigate to="/login" />}
-      />
-      
-      {/* Default route - redirect to home if logged in, or login if not logged in */}
-      <Route path="/" element={user ? <Navigate to="/home" /> : <Navigate to="/login" />} />
+      {/* Protected Routes */}
+      {user && (
+        <>
+          <Route path="/home" element={<Homepage user={user} handleLogout={handleLogout} />} />
+          <Route path="/profile" element={<Profile user={user} />} />
+          <Route path="/restaurants/:id" element={<RestaurantPage />} />
+          <Route path="/cart" element={<Cart />} />
+        </>
+      )}
+
+      {/* Redirects */}
+      <Route path="/" element={
+        user ? <Navigate to="/home" /> : <Navigate to="/login" />
+      } />
+      <Route path="*" element={<Navigate to={user ? "/home" : "/login"} />} />
     </Routes>
   );
 };

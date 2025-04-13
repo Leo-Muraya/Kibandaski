@@ -29,14 +29,30 @@ def token_required(f):
     def decorator(*args, **kwargs):
         token = None
         if 'Authorization' in request.headers:
-            token = request.headers['Authorization'].split(" ")[1]
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(" ")[1]
+        
         if not token:
             return jsonify({"message": "Token is missing!"}), 401
+            
         try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-            current_user = User.query.get(data['user_id'])
-        except:
+            # 1. Use JWT_SECRET_KEY explicitly
+            # 2. Validate 'sub' claim (not 'user_id')
+            data = jwt.decode(
+                token, 
+                app.config['JWT_SECRET_KEY'],  # Critical fix
+                algorithms=["HS256"]
+            )
+            current_user = User.query.get(data['sub'])  # Changed from 'user_id'
+            
+            if not current_user:
+                raise ValueError("User not found")
+                
+        except Exception as e:
+            print(f"JWT Error: {str(e)}")
             return jsonify({"message": "Token is invalid!"}), 401
+            
         return f(current_user, *args, **kwargs)
     return decorator
 
@@ -213,6 +229,42 @@ def get_user_orders(current_user):
 
     return jsonify(result)
 
+# Add these routes if missing
+@app.route('/orders/<int:order_id>/items/<int:item_id>', methods=['PATCH', 'DELETE'])
+@token_required
+def handle_order_item(current_user, order_id, item_id):
+    order = Order.query.filter_by(id=order_id, user_id=current_user.id).first()
+    if not order:
+        return jsonify({"error": "Order not found"}), 404
+
+    item = OrderFoodItem.query.filter_by(id=item_id, order_id=order.id).first()
+    if not item:
+        return jsonify({"error": "Item not found in order"}), 404
+
+    if request.method == 'PATCH':
+        quantity = request.json.get('quantity', 1)
+        if quantity < 1:
+            return jsonify({"error": "Invalid quantity"}), 400
+            
+        item.quantity = quantity
+        db.session.commit()
+        
+        # Recalculate total
+        order.total_price = sum(i.quantity * i.food_item.price for i in order.food_items)
+        db.session.commit()
+        
+        return jsonify({"message": "Quantity updated"}), 200
+
+    elif request.method == 'DELETE':
+        db.session.delete(item)
+        db.session.commit()
+        
+        # Recalculate total
+        order.total_price = sum(i.quantity * i.food_item.price for i in order.food_items)
+        db.session.commit()
+        
+        return jsonify({"message": "Item removed"}), 200
+
 # Remove item from an order (cart)
 @app.route('/orders/<int:order_id>/items/<int:item_id>', methods=['DELETE'])
 @token_required
@@ -251,6 +303,326 @@ def update_order_status(order_id):
     return jsonify({
         "message": "Order updated",
         "status": order.status
+    })
+
+@app.route('/cart', methods=['GET'])
+@token_required
+def get_cart(current_user):
+    """Get active cart with items"""
+    cart = Order.query.filter_by(
+        user_id=current_user.id,
+        status='cart'
+    ).first()
+
+    if not cart:
+        return jsonify({"message": "Cart is empty"}), 200
+
+    return jsonify({
+        "id": cart.id,
+        "items": [{
+            "id": item.id,
+            "food_item_id": item.food_item_id,
+            "name": item.food_item.name,
+            "price": item.food_item.price,
+            "quantity": item.quantity
+        } for item in cart.food_items],
+        "total": cart.total_price,
+        "restaurant": {
+            "id": cart.restaurant.id,
+            "name": cart.restaurant.name
+        } if cart.restaurant else None
+    })
+
+@app.route('/cart/items', methods=['POST'])
+@token_required
+def add_to_cart(current_user):
+    """Add item to cart"""
+    data = request.json
+    food_item_id = data.get('food_item_id')
+    quantity = data.get('quantity', 1)
+
+    food_item = FoodItem.query.get_or_404(food_item_id)
+    
+    # Get or create cart
+    cart = Order.query.filter_by(
+        user_id=current_user.id,
+        status='cart'
+    ).first()
+
+    if not cart:
+        cart = Order(
+            user_id=current_user.id,
+            restaurant_id=food_item.restaurant_id,
+            status='cart',
+            total_price=0
+        )
+        db.session.add(cart)
+        db.session.commit()
+
+    # Check restaurant consistency
+    if cart.restaurant_id != food_item.restaurant_id:
+        return jsonify({
+            "error": "Cannot mix restaurants in cart. Clear cart first."
+        }), 400
+
+    # Update existing item or add new
+    existing = next((i for i in cart.food_items 
+                   if i.food_item_id == food_item_id), None)
+    
+    if existing:
+        existing.quantity += quantity
+    else:
+        cart.food_items.append(OrderFoodItem(
+            food_item_id=food_item_id,
+            quantity=quantity
+        ))
+
+    # Update total
+    cart.total_price = sum(
+        item.quantity * item.food_item.price 
+        for item in cart.food_items
+    )
+    db.session.commit()
+
+    return jsonify({
+        "message": "Item added to cart",
+        "cart_id": cart.id
+    }), 201
+
+@app.route('/cart/items/<int:item_id>', methods=['DELETE'])
+@token_required
+def remove_cart_item(current_user, item_id):
+    """Remove item from cart"""
+    cart = Order.query.filter_by(
+        user_id=current_user.id,
+        status='cart'
+    ).first_or_404()
+
+    item = next((i for i in cart.food_items 
+               if i.id == item_id), None)
+    
+    if not item:
+        return jsonify({"error": "Item not found in cart"}), 404
+
+    db.session.delete(item)
+    
+    # Update total
+    cart.total_price = sum(
+        item.quantity * item.food_item.price 
+        for item in cart.food_items
+    )
+    db.session.commit()
+
+    return jsonify({"message": "Item removed"}), 200
+
+# ================= PROFILE ROUTES =================
+@app.route('/profile', methods=['GET', 'PATCH'])
+@token_required
+def user_profile(current_user):
+    if request.method == 'GET':
+        return jsonify({
+            "id": current_user.id,
+            "username": current_user.username,
+            "email": current_user.email,
+            "join_date": current_user.join_date.isoformat() if current_user.join_date else None
+        })
+    
+    if request.method == 'PATCH':
+        data = request.get_json()
+        updates = {}
+        
+        if 'username' in data:
+            if User.query.filter(User.username == data['username']).first():
+                return jsonify({"error": "Username already taken"}), 400
+            updates['username'] = data['username']
+            
+        if 'email' in data:
+            if User.query.filter(User.email == data['email']).first():
+                return jsonify({"error": "Email already in use"}), 400
+            updates['email'] = data['email']
+            
+        if 'password' in data:
+            current_user.set_password(data['password'])
+            
+        try:
+            User.query.filter_by(id=current_user.id).update(updates)
+            db.session.commit()
+            return jsonify({"message": "Profile updated successfully"})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500
+
+# ================= REVIEW ROUTES =================
+@app.route('/reviews', methods=['POST'])
+@token_required
+def create_review(current_user):
+    data = request.get_json()
+    required_fields = ['content', 'rating', 'food_item_id']
+    
+    if not all(field in data for field in required_fields):
+        return jsonify({"error": "Missing required fields"}), 400
+    
+    try:
+        review = Review(
+            content=data['content'],
+            rating=data['rating'],
+            user_id=current_user.id,
+            food_item_id=data['food_item_id']
+        )
+        db.session.add(review)
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Review created",
+            "review": {
+                "id": review.id,
+                "content": review.content,
+                "rating": review.rating,
+                "timestamp": review.timestamp.isoformat()
+            }
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/reviews/food/<int:food_item_id>')
+def get_food_reviews(food_item_id):
+    reviews = Review.query.filter_by(food_item_id=food_item_id).all()
+    return jsonify([{
+        "id": r.id,
+        "content": r.content,
+        "rating": r.rating,
+        "user": {
+            "id": r.user.id,
+            "username": r.user.username
+        },
+        "timestamp": r.timestamp.isoformat()
+    } for r in reviews])
+
+@app.route('/reviews/<int:review_id>', methods=['DELETE'])
+@token_required
+def delete_review(current_user, review_id):
+    review = Review.query.get_or_404(review_id)
+    
+    if review.user_id != current_user.id:
+        return jsonify({"error": "Unauthorized to delete this review"}), 403
+    
+    try:
+        db.session.delete(review)
+        db.session.commit()
+        return jsonify({"message": "Review deleted"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+# ================= ADMIN ROUTES =================
+def admin_required(f):
+    @wraps(f)
+    def decorator(current_user, *args, **kwargs):
+        if not current_user.is_admin:
+            return jsonify({"error": "Admin privileges required"}), 403
+        return f(current_user, *args, **kwargs)
+    return decorator
+
+@app.route('/admin/restaurants', methods=['POST'])
+@token_required
+@admin_required
+def admin_create_restaurant(current_user):
+    data = request.get_json()
+    required_fields = ['name', 'location']
+    
+    if not all(field in data for field in required_fields):
+        return jsonify({"error": "Missing required fields"}), 400
+    
+    try:
+        restaurant = Restaurant(
+            name=data['name'],
+            location=data['location'],
+            rating=data.get('rating', 0),
+            image=data.get('image')
+        )
+        db.session.add(restaurant)
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Restaurant created",
+            "restaurant": {
+                "id": restaurant.id,
+                "name": restaurant.name,
+                "location": restaurant.location
+            }
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+# Add similar implementations for other admin routes
+@app.route('/admin/restaurants/<int:restaurant_id>', methods=['PATCH', 'DELETE'])
+@token_required
+@admin_required
+def admin_manage_restaurant(current_user, restaurant_id):
+    restaurant = Restaurant.query.get_or_404(restaurant_id)
+    
+    if request.method == 'PATCH':
+        data = request.get_json()
+        updates = {}
+        
+        if 'name' in data:
+            updates['name'] = data['name']
+        if 'location' in data:
+            updates['location'] = data['location']
+        if 'rating' in data:
+            updates['rating'] = data['rating']
+        if 'image' in data:
+            updates['image'] = data['image']
+            
+        try:
+            Restaurant.query.filter_by(id=restaurant_id).update(updates)
+            db.session.commit()
+            return jsonify({"message": "Restaurant updated"})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500
+    
+    if request.method == 'DELETE':
+        try:
+            db.session.delete(restaurant)
+            db.session.commit()
+            return jsonify({"message": "Restaurant deleted"})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500
+
+# ================= SEARCH ROUTE =================
+@app.route('/search')
+def search_restaurants():
+    query = request.args.get('q', '')
+    if not query:
+        return jsonify({"error": "Missing search query"}), 400
+    
+    results = Restaurant.query.filter(
+        Restaurant.name.ilike(f'%{query}%') | 
+        Restaurant.location.ilike(f'%{query}%')
+    ).all()
+    
+    return jsonify([{
+        "id": r.id,
+        "name": r.name,
+        "location": r.location,
+        "rating": r.rating,
+        "image": r.image
+    } for r in results])
+
+# ================= TOKEN VERIFICATION =================
+@app.route('/verify-token')
+@token_required
+def verify_token_route(current_user):
+    return jsonify({
+        "valid": True,
+        "user": {
+            "id": current_user.id,
+            "username": current_user.username
+        }
     })
 
 @app.route('/')

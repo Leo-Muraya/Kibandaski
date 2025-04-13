@@ -1,36 +1,29 @@
-import { useSelector } from 'react-redux';
+import React from 'react';
+import CardButton from './CardButton';
 
-const Cart = () => {
-  const cartItems = useSelector((state) => state.cart.items);  // Access cart state from Redux
-
-  // Calculate total price of all items in the cart
-  const totalPrice = cartItems.reduce((acc, item) => acc + item.quantity * item.price, 0);
-
+const FoodItem = ({ item, restaurantId }) => {
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold">Your Cart</h2>
-      <ul className="mt-4">
-        {cartItems.length > 0 ? (
-          cartItems.map(item => (
-            <li key={item.id} className="mb-4">
-              <div className="flex justify-between">
-                <span>{item.name}</span>
-                <span>{item.quantity} x ${item.price.toFixed(2)}</span>
-                <span>${(item.quantity * item.price).toFixed(2)}</span>
-              </div>
-            </li>
-          ))
-        ) : (
-          <p>Your cart is empty.</p>
-        )}
-      </ul>
-      {cartItems.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold">Total: ${totalPrice.toFixed(2)}</h3>
+    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+      <div className="flex justify-between items-start p-4">
+        <div className="flex-1 mr-4">
+          <h3 className="text-lg font-semibold text-gray-800 mb-1">{item.name}</h3>
+          {item.description && (
+            <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+          )}
+          <p className="text-orange-600 font-bold text-lg">
+            Ksh {item.price?.toFixed(2) || '0.00'}
+          </p>
         </div>
-      )}
+        
+        <div className="flex-shrink-0">
+          <CardButton 
+            foodItemId={item.id}
+            restaurantId={restaurantId}
+          />
+        </div>
+      </div>
     </div>
   );
 };
 
-export default Cart;
+export default FoodItem;
