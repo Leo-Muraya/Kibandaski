@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from models import db, bcrypt, User, Restaurant, Order, FoodItem, OrderFoodItem, Review  # Updated import
 from flask_cors import CORS
 from flask_migrate import Migrate
-from flask_jwt_extended import JWTManager, create_access_token
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
 import jwt
 import datetime
 import os
@@ -16,14 +16,16 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///food_delivery.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key')
 app.config['JWT_SECRET_KEY'] = app.config['SECRET_KEY']  # for flask_jwt_extended
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=1)
 
 # Init extensions
 db.init_app(app)
 bcrypt.init_app(app)
 migrate = Migrate(app, db)
-jwt = JWTManager(app)
+jwt_manager = JWTManager(app)  # Was causing conflict as 'jwt'
 
 # ---------------- AUTH DECORATOR ----------------
+
 def token_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
@@ -37,15 +39,9 @@ def token_required(f):
             return jsonify({"message": "Token is missing!"}), 401
             
         try:
-            # 1. Use JWT_SECRET_KEY explicitly
-            # 2. Validate 'sub' claim (not 'user_id')
-            data = jwt.decode(
-                token, 
-                app.config['JWT_SECRET_KEY'],  # Critical fix
-                algorithms=["HS256"]
-            )
-            current_user = User.query.get(data['sub'])  # Changed from 'user_id'
-            
+            data = jwt_manager._decode_token(token)  # Use JWTManager's decoding
+            current_user = User.query.get(data['sub'])
+                
             if not current_user:
                 raise ValueError("User not found")
                 
