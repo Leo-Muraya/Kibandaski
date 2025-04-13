@@ -13,7 +13,7 @@ class OrderFoodItem(db.Model):
     food_item_id = db.Column(db.Integer, db.ForeignKey("food_items.id"), nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=1)
 
-#user Model
+# User model
 class User(db.Model):
     __tablename__ = "users"
     
@@ -31,7 +31,7 @@ class User(db.Model):
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
 
-#restaurant Model
+# Restaurant model
 class Restaurant(db.Model):
     __tablename__ = "restaurants"
     
@@ -40,10 +40,11 @@ class Restaurant(db.Model):
     location = db.Column(db.String(120))
     rating = db.Column(db.Float) 
     image = db.Column(db.String(200), nullable=True)
+
     food_items = db.relationship("FoodItem", backref="restaurant", cascade="all, delete-orphan")
-    
+    orders = db.relationship("Order", backref="restaurant", cascade="all, delete-orphan")  # 🔥 relationship to orders
 
-
+# FoodItem model
 class FoodItem(db.Model):
     __tablename__ = "food_items"
     
@@ -51,23 +52,24 @@ class FoodItem(db.Model):
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Float, nullable=False)
     restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurants.id"))
-    
+
     order_items = db.relationship("OrderFoodItem", backref="food_item", cascade="all, delete-orphan")
     reviews = db.relationship("Review", backref="food_item", cascade="all, delete-orphan")
 
-#order Model
+# Order model (✅ updated)
 class Order(db.Model):
     __tablename__ = "orders"
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurants.id"), nullable=False)  # ✅ added
     status = db.Column(db.String(50), default="Preparing")
     total_price = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     food_items = db.relationship("OrderFoodItem", backref="order", cascade="all, delete-orphan")
 
-#review Model
+# Review model
 class Review(db.Model):
     __tablename__ = "reviews"
     

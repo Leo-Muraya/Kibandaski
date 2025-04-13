@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from models import db, bcrypt, User, Restaurant, Order, MenuItem, OrderFoodItem, FoodItem
+from models import db, bcrypt, User, Restaurant, Order, FoodItem, OrderFoodItem, Review  # Updated import
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token
@@ -87,16 +87,17 @@ def login():
     # Log the received data for debugging
     app.logger.debug("Login request data: %s", data)
 
-    email = data.get('email')  # Only use email for login
+    # Check if email or username and password are provided
+    identifier = data.get('email') or data.get('username')  # Check if either email or username is provided
     password = data.get('password')
 
-    # Check if the required fields are missing
-    if not email or not password:
-        app.logger.warning("Missing email or password. Email: %s, Password: %s", email, password)
-        return jsonify({"message": "Email and password are required"}), 400
+    # Log a warning if email/username or password are missing
+    if not identifier or not password:
+        app.logger.warning("Missing identifier or password. Identifier: %s, Password: %s", identifier, password)
+        return jsonify({"message": "Email/Username and password are required"}), 400
 
-    # Query user by email only
-    user = User.query.filter_by(email=email).first()
+    # Query user by email or username
+    user = User.query.filter((User.email == identifier) | (User.username == identifier)).first()
 
     if user and user.check_password(password):
         access_token = create_access_token(identity=user.id)
@@ -107,7 +108,8 @@ def login():
             "message": "Login successful"
         }), 200
     else:
-        return jsonify({"error": "Invalid username or password"}), 401
+        return jsonify({"error": "Invalid email/username or password"}), 401
+
 
 # Get all restaurants
 @app.route('/restaurants', methods=['GET'])
@@ -143,20 +145,28 @@ def get_restaurant_menu(restaurant_id):
 def create_order(current_user):
     data = request.get_json()
     items = data.get('items')
+    restaurant_id = data.get('restaurant_id')
 
-    if not items:
-        return jsonify({"message": "Items are required"}), 400
+    if not items or not restaurant_id:
+        return jsonify({"message": "Items and restaurant_id are required"}), 400
 
-    order = Order(user_id=current_user.id, status='Pending', total_price=0)
-    db.session.add(order)
-    db.session.commit()
-
-    total = 0
+    # Check that all food items belong to the same restaurant
     for item in items:
         food_item = FoodItem.query.get(item.get('food_id'))
         if not food_item:
-            continue
+            return jsonify({"message": f"Food item with ID {item.get('food_id')} not found"}), 404
+        if food_item.restaurant_id != restaurant_id:
+            return jsonify({"message": f"Food item ID {food_item.id} does not belong to restaurant ID {restaurant_id}"}), 400
 
+    # Create the order with restaurant_id
+    order = Order(user_id=current_user.id, restaurant_id=restaurant_id, status='Pending', total_price=0)
+    db.session.add(order)
+    db.session.commit()
+
+    # Calculate total and create order items
+    total = 0
+    for item in items:
+        food_item = FoodItem.query.get(item.get('food_id'))
         quantity = item.get('quantity', 1)
         total += food_item.price * quantity
 
@@ -175,6 +185,7 @@ def create_order(current_user):
         "order_id": order.id,
         "total": total
     }), 201
+
 
 # Get all user orders
 @app.route('/orders', methods=['GET'])
