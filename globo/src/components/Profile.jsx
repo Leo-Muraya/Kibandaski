@@ -1,15 +1,15 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-const Profile = () => {
-  const user = JSON.parse(localStorage.getItem('user'));  //retrieve user info from localStorage
-  
-  if (!user) {
-    return null;  //returns nothing if the user is not logged in
-  }
-
+const Profile = ({ user }) => {
   return (
-    <div className="profile-tab">
-      <span>Welcome, {user.name}</span>
+    <div className="profile-container">
+      <h1>User Profile</h1>
+      <div className="profile-details">
+        <p>Name: {user.name}</p>
+        <p>Email: {user.email}</p>
+      </div>
+      <Link to="/home">Go to Homepage</Link>
     </div>
   );
 };

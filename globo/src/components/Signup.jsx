@@ -1,75 +1,223 @@
-import React from 'react';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { useNavigate } from 'react-router-dom'; 
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { signup } from '../api';
 
-const SignUp = () => {
-  const navigate = useNavigate(); 
-
-  const formik = useFormik({
-    initialValues: {
-      name: '',
-      email: '',
-      password: '',
-    },
-    validationSchema: Yup.object({
-      name: Yup.string().required('Name is required'),
-      email: Yup.string().email('Invalid email address').required('Email is required'),
-      password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
-    }),
-    onSubmit: async (values) => {
-      try {
-        console.log('User signed up with:', values);
-       
-        navigate('/login'); //redirect to login page
-      } catch (err) {
-        console.log('Error during signup:', err);
-      }
-    },
+const SignUp = ({ setUser }) => {
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: ''
   });
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+
+  const handleInputChange = (e) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!formData.username.trim() || !formData.email.trim() || !formData.password.trim()) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const newUser = await signup(formData);
+      
+      localStorage.setItem('user', JSON.stringify(newUser));
+      setUser(newUser);
+      navigate('/login');
+    } catch (err) {
+      setError(err.message.includes('400') 
+        ? 'Username or email already exists' 
+        : 'Signup failed. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const styles = {
+    container: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh',
+      backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
+        url('https://images.unsplash.com/photo-1504674900247-0877df9cc836')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    },
+    form: {
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      padding: '2.5rem',
+      borderRadius: '1rem',
+      boxShadow: '0 0.5rem 1.5rem rgba(0, 0, 0, 0.2)',
+      width: '90%',
+      maxWidth: '400px',
+    },
+    title: {
+      textAlign: 'center',
+      color: '#2d3436',
+      marginBottom: '0.5rem',
+      fontSize: '2rem',
+    },
+    subtitle: {
+      textAlign: 'center',
+      color: '#636e72',
+      marginBottom: '2rem',
+    },
+    formGroup: {
+      marginBottom: '1.5rem',
+    },
+    label: {
+      display: 'block',
+      marginBottom: '0.5rem',
+      color: '#2d3436',
+      fontWeight: '500',
+    },
+    input: {
+      width: '100%',
+      padding: '0.8rem',
+      border: '2px solid #dfe6e9',
+      borderRadius: '0.5rem',
+      fontSize: '1rem',
+      transition: 'border-color 0.3s ease',
+    },
+    button: {
+      width: '100%',
+      padding: '1rem',
+      backgroundColor: '#F7A38E',
+      color: 'white',
+      border: 'none',
+      borderRadius: '0.5rem',
+      fontSize: '1rem',
+      fontWeight: '600',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '0.5rem',
+    },
+    error: {
+      color: '#e74c3c',
+      backgroundColor: '#fdeded',
+      padding: '0.8rem',
+      borderRadius: '0.5rem',
+      marginBottom: '1.5rem',
+      border: '1px solid #f5c6cb',
+    },
+    footer: {
+      textAlign: 'center',
+      marginTop: '1.5rem',
+      color: '#636e72',
+    },
+    link: {
+      color: '#F7A38E',
+      fontWeight: '500',
+      textDecoration: 'none',
+    },
+    spinner: {
+      display: 'inline-block',
+      width: '1rem',
+      height: '1rem',
+      border: '3px solid rgba(255, 255, 255, 0.3)',
+      borderTopColor: 'white',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite',
+    }
+  };
 
   return (
-    <div>
-      <h2>Sign Up</h2>
-      <form onSubmit={formik.handleSubmit}>
-        <div>
-          <label htmlFor="name">Name</label>
+    <div style={styles.container}>
+      <form onSubmit={handleSignUp} style={styles.form}>
+        <h2 style={styles.title}>Create Account</h2>
+        <p style={styles.subtitle}>Join our food community</p>
+
+        {error && <div style={styles.error}>{error}</div>}
+
+        <div style={styles.formGroup}>
+          <label htmlFor="username" style={styles.label}>Username</label>
           <input
             type="text"
-            id="name"
-            name="name"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.name}
+            id="username"
+            value={formData.username}
+            onChange={handleInputChange}
+            disabled={isSubmitting}
+            style={{ 
+              ...styles.input,
+              borderColor: error ? '#e74c3c' : '#dfe6e9'
+            }}
           />
-          {formik.touched.name && formik.errors.name ? <div>{formik.errors.name}</div> : null}
         </div>
-        <div>
-          <label htmlFor="email">Email</label>
+
+        <div style={styles.formGroup}>
+          <label htmlFor="email" style={styles.label}>Email</label>
           <input
             type="email"
             id="email"
-            name="email"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.email}
+            value={formData.email}
+            onChange={handleInputChange}
+            disabled={isSubmitting}
+            style={{ 
+              ...styles.input,
+              borderColor: error ? '#e74c3c' : '#dfe6e9'
+            }}
           />
-          {formik.touched.email && formik.errors.email ? <div>{formik.errors.email}</div> : null}
         </div>
-        <div>
-          <label htmlFor="password">Password</label>
+
+        <div style={styles.formGroup}>
+          <label htmlFor="password" style={styles.label}>Password</label>
           <input
             type="password"
             id="password"
-            name="password"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.password}
+            value={formData.password}
+            onChange={handleInputChange}
+            disabled={isSubmitting}
+            style={{ 
+              ...styles.input,
+              borderColor: error ? '#e74c3c' : '#dfe6e9'
+            }}
           />
-          {formik.touched.password && formik.errors.password ? <div>{formik.errors.password}</div> : null}
         </div>
-        <button type="submit">Sign Up</button>
+
+        <button 
+          type="submit" 
+          style={{ 
+            ...styles.button,
+            backgroundColor: isSubmitting ? '#b2bec3' : '#F7A38E',
+            cursor: isSubmitting ? 'not-allowed' : 'pointer'
+          }}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <span style={styles.spinner}></span>
+              Creating Account...
+            </>
+          ) : 'Sign Up'}
+        </button>
+
+        <div style={styles.footer}>
+          Already have an account?{' '}
+          <Link to="/login" style={styles.link}>Login here</Link>
+        </div>
       </form>
+
+      <style>
+        {`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}
+      </style>
     </div>
   );
 };
