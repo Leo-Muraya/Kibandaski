@@ -1,225 +1,138 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { signup } from '../api';
+import { useNavigate } from 'react-router-dom';
+import { signup } from '../api'; // Assuming you have the signup API method
 
 const SignUp = ({ setUser }) => {
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: ''
-  });
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const navigate = useNavigate();
-
-  const handleInputChange = (e) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
-  };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-    setError('');
-
-    if (!formData.username.trim() || !formData.email.trim() || !formData.password.trim()) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    setIsSubmitting(true);
 
     try {
-      const newUser = await signup(formData);
-      
-      localStorage.setItem('user', JSON.stringify(newUser));
-      setUser(newUser);
-      navigate('/login');
-    } catch (err) {
-      setError(err.message.includes('400') 
-        ? 'Username or email already exists' 
-        : 'Signup failed. Please try again.'
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+      const newUser = await signup({ username, email, password });
 
-  const styles = {
-    container: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100vh',
-      backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
-        url('https://images.unsplash.com/photo-1504674900247-0877df9cc836')`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-    },
-    form: {
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      padding: '2.5rem',
-      borderRadius: '1rem',
-      boxShadow: '0 0.5rem 1.5rem rgba(0, 0, 0, 0.2)',
-      width: '90%',
-      maxWidth: '400px',
-    },
-    title: {
-      textAlign: 'center',
-      color: '#2d3436',
-      marginBottom: '0.5rem',
-      fontSize: '2rem',
-    },
-    subtitle: {
-      textAlign: 'center',
-      color: '#636e72',
-      marginBottom: '2rem',
-    },
-    formGroup: {
-      marginBottom: '1.5rem',
-    },
-    label: {
-      display: 'block',
-      marginBottom: '0.5rem',
-      color: '#2d3436',
-      fontWeight: '500',
-    },
-    input: {
-      width: '100%',
-      padding: '0.8rem',
-      border: '2px solid #dfe6e9',
-      borderRadius: '0.5rem',
-      fontSize: '1rem',
-      transition: 'border-color 0.3s ease',
-    },
-    button: {
-      width: '100%',
-      padding: '1rem',
-      backgroundColor: '#F7A38E',
-      color: 'white',
-      border: 'none',
-      borderRadius: '0.5rem',
-      fontSize: '1rem',
-      fontWeight: '600',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '0.5rem',
-    },
-    error: {
-      color: '#e74c3c',
-      backgroundColor: '#fdeded',
-      padding: '0.8rem',
-      borderRadius: '0.5rem',
-      marginBottom: '1.5rem',
-      border: '1px solid #f5c6cb',
-    },
-    footer: {
-      textAlign: 'center',
-      marginTop: '1.5rem',
-      color: '#636e72',
-    },
-    link: {
-      color: '#F7A38E',
-      fontWeight: '500',
-      textDecoration: 'none',
-    },
-    spinner: {
-      display: 'inline-block',
-      width: '1rem',
-      height: '1rem',
-      border: '3px solid rgba(255, 255, 255, 0.3)',
-      borderTopColor: 'white',
-      borderRadius: '50%',
-      animation: 'spin 1s linear infinite',
+      // Store new user data in localStorage
+      localStorage.setItem('user', JSON.stringify(newUser));
+
+      // Set user in app state
+      setUser(newUser);
+
+      // Redirect to login page
+      navigate('/login');
+    } catch (error) {
+      alert('Signup failed. Please try again.');
     }
   };
 
   return (
-    <div style={styles.container}>
-      <form onSubmit={handleSignUp} style={styles.form}>
-        <h2 style={styles.title}>Create Account</h2>
-        <p style={styles.subtitle}>Join our food community</p>
-
-        {error && <div style={styles.error}>{error}</div>}
-
-        <div style={styles.formGroup}>
-          <label htmlFor="username" style={styles.label}>Username</label>
+    <div style={styles.wrapper}>
+      <div style={styles.backgroundLayer}></div>
+      <div style={styles.signupContainer}>
+        <h2 style={styles.header}>Sign Up</h2>
+        <form onSubmit={handleSignUp}>
           <input
+            style={styles.input}
             type="text"
-            id="username"
-            value={formData.username}
-            onChange={handleInputChange}
-            disabled={isSubmitting}
-            style={{ 
-              ...styles.input,
-              borderColor: error ? '#e74c3c' : '#dfe6e9'
-            }}
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
           />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label htmlFor="email" style={styles.label}>Email</label>
           <input
+            style={styles.input}
             type="email"
-            id="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            disabled={isSubmitting}
-            style={{ 
-              ...styles.input,
-              borderColor: error ? '#e74c3c' : '#dfe6e9'
-            }}
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
           />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label htmlFor="password" style={styles.label}>Password</label>
           <input
+            style={styles.input}
             type="password"
-            id="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            disabled={isSubmitting}
-            style={{ 
-              ...styles.input,
-              borderColor: error ? '#e74c3c' : '#dfe6e9'
-            }}
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
           />
-        </div>
-
-        <button 
-          type="submit" 
-          style={{ 
-            ...styles.button,
-            backgroundColor: isSubmitting ? '#b2bec3' : '#F7A38E',
-            cursor: isSubmitting ? 'not-allowed' : 'pointer'
-          }}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <span style={styles.spinner}></span>
-              Creating Account...
-            </>
-          ) : 'Sign Up'}
-        </button>
-
-        <div style={styles.footer}>
+          <button type="submit" style={styles.button}>Sign Up</button>
+        </form>
+        <p style={styles.text}>
           Already have an account?{' '}
-          <Link to="/login" style={styles.link}>Login here</Link>
-        </div>
-      </form>
-
-      <style>
-        {`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}
-      </style>
+          <a href="/login" style={styles.link}>Login</a>
+        </p>
+      </div>
     </div>
   );
+};
+
+const styles = {
+  wrapper: {
+    backgroundImage: 'url(https://teamnutrition.ca/sites/default/files/articles/Inte%CC%81rieur%20restaurant%20-%20Restaurant%20interior.jpeg)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    minHeight: '100vh',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '20px',
+    position: 'relative',
+  },
+  backgroundLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0, 0, 0, 0.5)', // Darken the background a bit
+    backdropFilter: 'blur(5px)', // Applying the blur effect to the background
+    zIndex: 0, // Ensures the background layer is below the form container
+  },
+  signupContainer: {
+    backgroundColor: '#000',
+    padding: '40px',
+    borderRadius: '8px',
+    width: '100%',
+    maxWidth: '400px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+    color: 'white',
+    textAlign: 'center',
+    zIndex: 1,
+  },
+  header: {
+    fontSize: '2rem',
+    marginBottom: '20px',
+  },
+  input: {
+    width: '100%',
+    padding: '10px',
+    margin: '10px 0',
+    borderRadius: '4px',
+    border: '1px solid #ccc',
+    backgroundColor: '#444',
+    color: 'white',
+    fontSize: '16px',
+  },
+  button: {
+    width: '100%',
+    padding: '10px',
+    backgroundColor: '#f39c12',
+    border: 'none',
+    color: 'white',
+    fontSize: '16px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  text: {
+    marginTop: '10px',
+    color: '#aaa',
+  },
+  link: {
+    color: '#f39c12',
+    textDecoration: 'none',
+  },
 };
 
 export default SignUp;
