@@ -30,6 +30,9 @@ const apiRequest = async (endpoint, method = 'GET', data = null, requiresAuth = 
   }
 };
 
+export const checkoutOrder = (checkoutData) =>
+  apiRequest('/checkout', 'POST', checkoutData, true);
+
 // ================= AUTHENTICATION =================
 export const signup = (userData) => apiRequest('/signup', 'POST', userData);
 export const login = (credentials) => apiRequest('/login', 'POST', credentials);

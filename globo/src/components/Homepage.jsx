@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchRestaurants } from "../api";
+import { useCart } from "./Cartcontext";
 
 const Homepage = ({ user, handleLogout }) => {
   const [restaurants, setRestaurants] = useState([]);
-  const [filteredRestaurants, setFilteredRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [sortBy, setSortBy] = useState("ratingDesc");
-
+  const { cartCount } = useCart();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,7 +30,7 @@ const Homepage = ({ user, handleLogout }) => {
     getRestaurants();
   }, [navigate]);
 
-  useEffect(() => {
+  const filteredRestaurants = useMemo(() => {
     let filtered = [...restaurants];
 
     if (searchQuery) {
@@ -49,7 +49,7 @@ const Homepage = ({ user, handleLogout }) => {
       filtered.sort((a, b) => (a.rating || 0) - (b.rating || 0));
     }
 
-    setFilteredRestaurants(filtered);
+    return filtered;
   }, [restaurants, searchQuery, selectedLocation, sortBy]);
 
   const locations = ["All", ...new Set(restaurants.map((r) => r.location))];
@@ -66,7 +66,9 @@ const Homepage = ({ user, handleLogout }) => {
         borderRadius: "15px",
         marginBottom: "2rem",
         border: "1px solid #f08b72",
-        boxShadow: "0 4px 12px rgba(247, 163, 142, 0.2)"
+        boxShadow: "0 4px 12px rgba(247, 163, 142, 0.2)",
+        flexDirection: window.innerWidth < 768 ? "column" : "row",
+        gap: window.innerWidth < 768 ? "1rem" : "0"
       }}>
         <div style={{ display: "flex", alignItems: "center" }}>
           <img 
@@ -84,8 +86,21 @@ const Homepage = ({ user, handleLogout }) => {
           </h1>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-          <Link to="/cart" style={{ color: "#fff", display: "flex", alignItems: "center" }}>
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: "2rem",
+          flexDirection: window.innerWidth < 768 ? "column" : "row"
+        }}>
+          <Link 
+            to="/cart" 
+            style={{ 
+              color: "#fff", 
+              display: "flex", 
+              alignItems: "center",
+              position: "relative"
+            }}
+          >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               width="24" 
@@ -101,10 +116,33 @@ const Homepage = ({ user, handleLogout }) => {
               <path d="M16 10a4 4 0 0 1-8 0"></path>
             </svg>
             Cart
+            {cartCount > 0 && (
+              <span style={{
+                position: "absolute",
+                top: "-8px",
+                right: "-8px",
+                backgroundColor: "#f08b72",
+                color: "white",
+                borderRadius: "50%",
+                width: "20px",
+                height: "20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "12px"
+              }}>
+                {cartCount}
+              </span>
+            )}
           </Link>
           
           {user ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "1rem",
+              flexDirection: window.innerWidth < 768 ? "column" : "row"
+            }}>
               <img 
                 src="https://www.gravatar.com/avatar?d=mp&s=40" 
                 alt="User profile" 
@@ -115,7 +153,7 @@ const Homepage = ({ user, handleLogout }) => {
                   border: "2px solid #f08b72" 
                 }} 
               />
-              <div>
+              <div style={{ textAlign: window.innerWidth < 768 ? "center" : "left" }}>
                 <span style={{ color: "#fff", fontWeight: "bold" }}>{user?.username}</span>
                 <button 
                   onClick={handleLogout} 
@@ -128,7 +166,8 @@ const Homepage = ({ user, handleLogout }) => {
                     border: "none", 
                     borderRadius: "6px", 
                     fontWeight: "bold",
-                    marginTop: "4px"
+                    marginTop: "4px",
+                    width: "100%"
                   }}
                 >
                   Logout
@@ -163,6 +202,7 @@ const Homepage = ({ user, handleLogout }) => {
             width: "300px",
             fontSize: "1rem"
           }}
+          aria-label="Search restaurants"
         />
 
         <select
@@ -176,6 +216,7 @@ const Homepage = ({ user, handleLogout }) => {
             color: "#2d3436",
             fontSize: "1rem"
           }}
+          aria-label="Filter by location"
         >
           {locations.map((loc, index) => (
             <option key={index} value={loc}>
@@ -195,6 +236,7 @@ const Homepage = ({ user, handleLogout }) => {
             color: "#2d3436",
             fontSize: "1rem"
           }}
+          aria-label="Sort restaurants"
         >
           <option value="ratingDesc">Sort: Rating (High to Low)</option>
           <option value="ratingAsc">Sort: Rating (Low to High)</option>
@@ -203,7 +245,44 @@ const Homepage = ({ user, handleLogout }) => {
 
       {/* Restaurant Grid */}
       {loading ? (
-        <p style={{ textAlign: "center", color: "#6b4a42" }}>Loading restaurants...</p>
+        <div style={{ 
+          display: "grid", 
+          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", 
+          gap: "1.5rem"
+        }}>
+          {[1,2,3,4].map((_, index) => (
+            <div 
+              key={index} 
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: "15px",
+                height: "350px",
+                animation: "pulse 1.5s infinite",
+              }}
+            />
+          ))}
+        </div>
+      ) : filteredRestaurants.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "2rem" }}>
+          <h3 style={{ color: "#6b4a42" }}>No restaurants found</h3>
+          <button 
+            onClick={() => {
+              setSearchQuery("");
+              setSelectedLocation("All");
+            }}
+            style={{
+              padding: "0.8rem 1.5rem",
+              backgroundColor: "#F7A38E",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              marginTop: "1rem"
+            }}
+          >
+            Clear Filters
+          </button>
+        </div>
       ) : (
         <div style={{ 
           display: "grid", 
@@ -247,10 +326,15 @@ const Homepage = ({ user, handleLogout }) => {
               </div>
               <div style={{ padding: "1.5rem" }}>
                 <h3 style={{ margin: "0 0 0.5rem", color: "#2d3436" }}>{restaurant.name}</h3>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <p style={{ margin: "0.3rem 0", color: "#6b4a42" }}>
+                    ⏰ {restaurant.delivery_time || '30-40'} mins
+                  </p>
+                  <p style={{ margin: "0.3rem 0", color: "#6b4a42" }}>
+                    ⭐ {restaurant.rating ? restaurant.rating.toFixed(1) : "N/A"}
+                  </p>
+                </div>
                 <p style={{ margin: "0.3rem 0", color: "#6b4a42" }}>{restaurant.location}</p>
-                <p style={{ margin: "0.3rem 0", color: "#6b4a42" }}>
-                  ⭐ {restaurant.rating ? restaurant.rating.toFixed(1) : "N/A"}
-                </p>
                 <Link
                   to={`/restaurants/${restaurant.id}`}
                   style={{
@@ -290,6 +374,16 @@ const Homepage = ({ user, handleLogout }) => {
       }}>
         <p>© 2024 Kibandaski App</p>
       </footer>
+
+      <style>
+        {`
+          @keyframes pulse {
+            0% { background-color: #f5f5f5; }
+            50% { background-color: #ffffff; }
+            100% { background-color: #f5f5f5; }
+          }
+        `}
+      </style>
     </div>
   );
 };

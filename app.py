@@ -621,6 +621,76 @@ def verify_token_route(current_user):
         }
     })
 
+# Checkout route
+@app.route('/checkout', methods=['POST'])
+@token_required
+def handle_checkout(current_user):
+    data = request.get_json()
+    
+    # Get active cart
+    cart = Order.query.filter_by(
+        user_id=current_user.id,
+        status='cart'
+    ).first()
+
+    if not cart:
+        return jsonify({
+            "success": False,
+            "message": "No active cart found"
+        }), 404
+
+    if not cart.food_items:
+        return jsonify({
+            "success": False,
+            "message": "Cannot checkout empty cart"
+        }), 400
+
+    try:
+        # Validate all items belong to the same restaurant
+        restaurant_id = cart.restaurant_id
+        for item in cart.food_items:
+            if item.food_item.restaurant_id != restaurant_id:
+                return jsonify({
+                    "success": False,
+                    "message": "Cart contains items from multiple restaurants"
+                }), 400
+
+        # Update order details
+        cart.delivery_address = data.get('deliveryAddress', '')
+        cart.city = data.get('city', '')
+        cart.payment_method = data.get('paymentMethod', 'cash')
+        cart.status = 'processing'
+        cart.timestamp = datetime.utcnow()
+
+        # Recalculate total price
+        cart.total_price = sum(
+            item.quantity * item.food_item.price 
+            for item in cart.food_items
+        )
+
+        db.session.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "Order placed successfully",
+            "order": {
+                "id": cart.id,
+                "total": cart.total_price,
+                "status": cart.status,
+                "estimated_delivery": (
+                    datetime.utcnow() + timedelta(minutes=45)
+                ).strftime('%Y-%m-%d %H:%M'),
+                "restaurant": cart.restaurant.name
+            }
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "success": False,
+            "message": f"Checkout failed: {str(e)}"
+        }), 500
+
 @app.route('/')
 def home():
     app.logger.info("Home route accessed.")

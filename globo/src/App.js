@@ -4,16 +4,17 @@ import SignUp from './components/Signup';
 import Login from './components/Login';
 import Homepage from './components/Homepage';
 import Profile from './components/Profile';
-import RestaurantPage from './Restaurantpage'; // Add this
-import Cart from './components/Cart'; // Add this
-import './App.css'; // Add this at the top
+import RestaurantPage from './Restaurantpage';
+import Cart from './components/Cart';
+import Checkout from './components/Checkout'; // Add this import
+import './App.css';
 
 const App = () => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user'));
-    const token = localStorage.getItem('authToken'); // Check for token
+    const token = localStorage.getItem('authToken');
     if (userData && token) {
       setUser(userData);
     }
@@ -22,13 +23,13 @@ const App = () => {
   const handleLogin = (userData) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('authToken', userData.token); // Store token
+    localStorage.setItem('authToken', userData.token);
   };
 
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('user');
-    localStorage.removeItem('authToken'); // Remove token
+    localStorage.removeItem('authToken');
   };
 
   return (
@@ -43,6 +44,7 @@ const App = () => {
           <Route path="/profile" element={<Profile user={user} />} />
           <Route path="/restaurants/:id" element={<RestaurantPage />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout user={user} />} /> {/* Add Checkout route */}
         </>
       )}
 
