@@ -1,124 +1,174 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { signup } from '../api'; // Assuming you have the signup API method
+import { useNavigate, Link } from 'react-router-dom';
+import { signup } from '../api';
 
 const SignUp = ({ setUser }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: ''
+  });
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  const handleInputChange = (e) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    setError('');
+    setIsLoading(true);
 
-    // Call your API to create a new user
     try {
-      const newUser = await signup({ name, email, password });
-
-      // Store new user data in localStorage
+      const newUser = await signup(formData);
       localStorage.setItem('user', JSON.stringify(newUser));
-
-      // Set the user data in app state
       setUser(newUser);
-
-      // Redirect to login after successful signup
       navigate('/login');
-    } catch (error) {
-      alert('Signup failed. Please try again.');
+    } catch (err) {
+      setError(err.message.includes('400') 
+        ? 'Username or email already exists' 
+        : 'Signup failed. Please try again.'
+      );
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const styles = {
+    wrapper: {
+      backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+        url('https://teamnutrition.ca/sites/default/files/articles/Inte%CC%81rieur%20restaurant%20-%20Restaurant%20interior.jpeg')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      minHeight: '100vh',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: '20px',
+    },
+    signupContainer: {
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      padding: '40px 35px',
+      borderRadius: '20px',
+      width: '100%',
+      maxWidth: '420px',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+      color: '#2d3436',
+      textAlign: 'center',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      boxSizing: 'border-box',
+    },
+    header: {
+      fontSize: '2.2rem',
+      marginBottom: '15px',
+      fontWeight: '700',
+      letterSpacing: '-0.5px',
+    },
+    subtitle: {
+      fontSize: '1rem',
+      color: '#666',
+      marginBottom: '30px',
+      fontWeight: '500',
+    },
+    input: {
+      width: '90%',
+      padding: '14px 20px',
+      margin: '12px 0',
+      borderRadius: '10px',
+      border: '2px solid #e0e0e0',
+      backgroundColor: '#f8f9fa',
+      fontSize: '16px',
+      transition: 'all 0.3s ease',
+      outline: 'none',
+    },
+    button: {
+      width: '90%',
+      padding: '16px',
+      backgroundColor: '#F7A38E',
+      border: 'none',
+      color: '#fff',
+      fontSize: '16px',
+      fontWeight: '600',
+      borderRadius: '10px',
+      cursor: 'pointer',
+      transition: 'all 0.3s ease',
+      marginTop: '15px',
+      opacity: isLoading ? 0.7 : 1,
+      pointerEvents: isLoading ? 'none' : 'auto',
+    },
+    error: {
+      color: '#e74c3c',
+      backgroundColor: '#fdeded',
+      padding: '12px',
+      borderRadius: '8px',
+      margin: '15px 0',
+      fontSize: '14px',
+      border: '1px solid #f5c6cb',
+    },
+    text: {
+      marginTop: '20px',
+      fontSize: '14px',
+      color: '#666',
+      fontWeight: '500',
+    },
+    link: {
+      color: '#F7A38E',
+      textDecoration: 'none',
+      fontWeight: '600',
+    },
   };
 
   return (
     <div style={styles.wrapper}>
       <div style={styles.signupContainer}>
-        <h2 style={styles.header}>Sign Up</h2>
+        <h2 style={styles.header}>Create Account</h2>
+        <p style={styles.subtitle}>Join our food community</p>
+
+        {error && <div style={styles.error}>{error}</div>}
+
         <form onSubmit={handleSignUp}>
           <input
-            style={styles.input}
             type="text"
-            placeholder="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            id="username"
+            placeholder="Username"
+            value={formData.username}
+            onChange={handleInputChange}
             required
+            style={styles.input}
           />
           <input
-            style={styles.input}
             type="email"
+            id="email"
             placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={handleInputChange}
             required
+            style={styles.input}
           />
           <input
-            style={styles.input}
             type="password"
+            id="password"
             placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={handleInputChange}
             required
+            style={styles.input}
           />
-          <button type="submit" style={styles.button}>Sign Up</button>
+          <button type="submit" style={styles.button}>
+            {isLoading ? "Creating Account..." : "Sign Up"}
+          </button>
         </form>
-        <p style={styles.text}>Already have an account? <a href="/login" style={styles.link}>Login</a></p>
+
+        <p style={styles.text}>
+          Already have an account?{' '}
+          <Link to="/login" style={styles.link}>Login here</Link>
+        </p>
       </div>
     </div>
   );
-};
-
-const styles = {
-  wrapper: {
-    backgroundImage: 'url(https://teamnutrition.ca/sites/default/files/articles/Inte%CC%81rieur%20restaurant%20-%20Restaurant%20interior.jpeg)', // Replace with your image URL or local path
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    minHeight: '100vh', // Ensure it covers the entire height of the viewport
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: '20px', // Optional padding around the container
-  },
-  signupContainer: {
-    backgroundColor: '#000', // Black background for the form container
-    padding: '40px',
-    borderRadius: '8px',
-    width: '100%',
-    maxWidth: '400px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-    color: 'white', // Text color for the form
-    textAlign: 'center',
-    zIndex: 1, // Make sure it's above the background image
-  },
-  header: {
-    fontSize: '2rem',
-    marginBottom: '20px',
-  },
-  input: {
-    width: '100%',
-    padding: '10px',
-    margin: '10px 0',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-    backgroundColor: '#444',
-    color: 'white',
-    fontSize: '16px',
-  },
-  button: {
-    width: '100%',
-    padding: '10px',
-    backgroundColor: '#f39c12',
-    border: 'none',
-    color: 'white',
-    fontSize: '16px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  text: {
-    marginTop: '10px',
-    color: '#aaa',
-  },
-  link: {
-    color: '#f39c12',
-    textDecoration: 'none',
-  }
 };
 
 export default SignUp;

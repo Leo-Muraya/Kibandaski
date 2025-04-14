@@ -1,16 +1,15 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
 const API_URL = 'http://127.0.0.1:5000';
 
-// Utility function to handle API requests
 const apiRequest = async (endpoint, method = 'GET', data = null, requiresAuth = false) => {
   const options = {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
   };
 
-  // If authentication is required, include the JWT token in the Authorization header
   if (requiresAuth) {
     const token = localStorage.getItem('authToken');
     if (token) {
@@ -20,13 +19,12 @@ const apiRequest = async (endpoint, method = 'GET', data = null, requiresAuth = 
     }
   }
 
-  if (data) {
-    options.body = JSON.stringify(data);
-  }
+  if (data) options.body = JSON.stringify(data);
 
   try {
     const response = await fetch(`${API_URL}${endpoint}`, options);
     if (!response.ok) {
+<<<<<<< HEAD
       throw new Error(`Error: ${response.statusText}`);
 =======
 // api.js (Unified API Service)
@@ -73,23 +71,25 @@ export const login = async (credentials) => {
     localStorage.setItem('authToken', response.token); // Assuming the token is returned in response.token
 
     return response; 
+=======
+      const errorData = await response.json();
+      throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+>>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
   } catch (error) {
-    console.error('Login failed:', error);
+    console.error(`API Error (${endpoint}):`, error.message);
     throw error;
   }
 };
 
-// User signup (stores JWT token in localStorage)
-export const signup = async (userData) => {
-  try {
-    const response = await apiRequest('/signup', 'POST', userData);
-    return response.user; // Assuming the user data is returned in the response
-  } catch (error) {
-    console.error('Signup failed:', error);
-    throw error;
-  }
-};
+// ================= AUTHENTICATION =================
+export const signup = (userData) => apiRequest('/signup', 'POST', userData);
+export const login = (credentials) => apiRequest('/login', 'POST', credentials);
+export const logout = () => localStorage.removeItem('authToken');
+export const checkLoginStatus = () => !!localStorage.getItem('authToken');
 
+<<<<<<< HEAD
 // Check if user is logged in by checking the presence of the JWT token
 export const checkLoginStatus = () => {
   return !!localStorage.getItem('authToken');
@@ -97,59 +97,60 @@ export const checkLoginStatus = () => {
 =======
 // Authentication Context
 const AuthContext = createContext();
+=======
+// ================= RESTAURANTS =================
+export const fetchRestaurants = () => apiRequest('/restaurants');
+export const getRestaurantDetails = (restaurantId) => 
+  apiRequest(`/restaurants/${restaurantId}`);
+export const fetchRestaurantMenu = (restaurantId) => 
+  apiRequest(`/restaurants/${restaurantId}/menu`);
+>>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+// ================= ORDERS =================
+export const createOrder = (orderData) => 
+  apiRequest('/orders', 'POST', orderData, true);
+export const fetchUserOrders = () => 
+  apiRequest('/orders', 'GET', null, true);
+export const updateOrderStatus = (orderId, status) => 
+  apiRequest(`/orders/${orderId}`, 'PATCH', { status }, true);
 
-  const login = async credentials => {
-    try {
-      const { data } = await api.post('/login', credentials);
-      localStorage.setItem('token', data.accessToken);
-      setUser(data.user);
-      return data.user;
-    } catch (error) {
-      throw error.response?.data?.error || 'Login failed';
-    }
-  };
+// ================= ORDER ITEMS =================
+export const updateOrderItem = (orderId, itemId, quantity) => 
+  apiRequest(`/orders/${orderId}/items/${itemId}`, 'PATCH', { quantity }, true);
+export const removeOrderItem = (orderId, itemId) => 
+  apiRequest(`/orders/${orderId}/items/${itemId}`, 'DELETE', null, true);
 
-  const signup = async userData => {
-    try {
-      const { data } = await api.post('/signup', userData);
-      localStorage.setItem('token', data.accessToken);
-      setUser(data.user);
-      return data.user;
-    } catch (error) {
-      throw error.response?.data?.error || 'Registration failed';
-    }
-  };
+// ================= CART =================
+export const fetchActiveCart = () => 
+  apiRequest('/cart', 'GET', null, true);
+export const addToCart = (foodItemId, quantity = 1) =>
+  apiRequest('/cart/items', 'POST', { food_item_id: foodItemId, quantity }, true);
+export const removeCartItem = (itemId) =>
+  apiRequest(`/cart/items/${itemId}`, 'DELETE', null, true);
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-  };
+// ================= PROFILE =================
+export const fetchUserProfile = () => 
+  apiRequest('/profile', 'GET', null, true);
+export const updateUserProfile = (profileData) => 
+  apiRequest('/profile', 'PATCH', profileData, true);
 
-  useEffect(() => {
-    const verifySession = async () => {
-      try {
-        const { data } = await api.get('/me');
-        setUser(data);
-      } catch (error) {
-        logout();
-      } finally {
-        setLoading(false);
-      }
-    };
-    verifySession();
-  }, []);
+// ================= REVIEWS =================
+export const createReview = (reviewData) => 
+  apiRequest('/reviews', 'POST', reviewData, true);
+export const getFoodItemReviews = (foodItemId) => 
+  apiRequest(`/reviews/food/${foodItemId}`);
+export const deleteReview = (reviewId) => 
+  apiRequest(`/reviews/${reviewId}`, 'DELETE', null, true);
 
-  return (
-    <AuthContext.Provider value={{ user, loading, login, logout, signup }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+// ================= ADMIN =================
+export const adminCreateRestaurant = (restaurantData) => 
+  apiRequest('/admin/restaurants', 'POST', restaurantData, true);
+export const adminUpdateRestaurant = (restaurantId, restaurantData) => 
+  apiRequest(`/admin/restaurants/${restaurantId}`, 'PATCH', restaurantData, true);
+export const adminDeleteRestaurant = (restaurantId) => 
+  apiRequest(`/admin/restaurants/${restaurantId}`, 'DELETE', null, true);
 
+<<<<<<< HEAD
 export const useAuth = () => useContext(AuthContext);
 
 // Redux Cart Store
@@ -243,3 +244,10 @@ export const ProtectedRoute = ({ children }) => {
   return user ? children : null;
 };
 >>>>>>> da284935ad2844064f046a972ace2b26c96d0c94
+=======
+// ================= MISC =================
+export const verifyToken = () => 
+  apiRequest('/verify-token', 'GET', null, true);
+export const searchRestaurants = (query) => 
+  apiRequest(`/search?q=${encodeURIComponent(query)}`);
+>>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c

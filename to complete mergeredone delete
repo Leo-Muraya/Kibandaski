@@ -1,0 +1,178 @@
+[33mcommit d935232edd49f48e7038e7df1b7b7afc1f1f90b2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Sun Apr 13 15:24:58 2025 +0300
+
+    deleted files to complete merge
+
+[33mcommit 1ffc745e9984890810faf77a537e1921973474eb[m
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Sun Apr 13 02:52:29 2025 +0300
+
+     removed client
+
+[33mcommit da284935ad2844064f046a972ace2b26c96d0c94[m[33m ([m[1;31morigin/Leo[m[33m, [m[1;32mLeo[m[33m)[m
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Fri Apr 11 05:39:29 2025 +0300
+
+    edited README
+
+[33mcommit fbad325b4e80307eccb9efa8c2c1172381f91548[m
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Fri Apr 11 02:04:08 2025 +0300
+
+    changed styling
+
+[33mcommit 8e8d7951a6cd626d29a909705756766041e54e54[m
+Merge: e5001bcc 5fca0882
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Fri Apr 11 01:17:15 2025 +0300
+
+    Merge branch 'Leo'
+
+[33mcommit e5001bccaf9f6feec899a0a2eb9f9aa3fd208f52[m
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Fri Apr 11 01:15:57 2025 +0300
+
+    styled components
+
+[33mcommit 5fca0882a2edcf853ab10a32c2bf70970c9a2d62[m
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Thu Apr 10 23:35:35 2025 +0300
+
+    added important pages
+
+[33mcommit 5221eedb216b7ddd7150479fdbe8bf3075f2efb1[m
+Merge: 6150774a bd86b963
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Thu Apr 10 15:22:20 2025 +0300
+
+    Merge branch 'main' into Leo
+
+[33mcommit bd86b96343b9ebd17771b213518ed50c4307a7cc[m
+Merge: 2b6542b5 ec07f958
+Author: Leo Muraya <murayaleo911@gmail.com>
+Date:   Thu Apr 10 15:17:34 2025 +0300
+
+    Merge pull request #3 from Leo-Muraya/globo
+    
+    Globo
+
+[33mcommit ec07f9581964bdc02d4ed5fb84a9d87295125f94[m
+Author: Azrielski <victorngae20@gmail.com>
+Date:   Thu Apr 10 15:14:02 2025 +0300
+
+    globo work
+
+[33mcommit 6150774abca020c22a2441a3566f8fd63226081d[m
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Thu Apr 10 10:32:39 2025 +0300
+
+    updating frontend
+
+[33mcommit 2b6542b5834059cec5e98a2d86db6b1e5a479569[m
+Merge: b36079a2 cf57a7ac
+Author: Leo Muraya <murayaleo911@gmail.com>
+Date:   Thu Apr 10 10:30:46 2025 +0300
+
+    Merge pull request #2 from Leo-Muraya/money
+    
+    elvfront end
+
+[33mcommit cf57a7ac32364fd623b037946648ee444a1a02a5[m[33m ([m[1;31morigin/money[m[33m)[m
+Author: Elvis Kuria <levonjoroge>
+Date:   Thu Apr 10 09:38:31 2025 +0300
+
+    navbar changes
+
+[33mcommit a6d84ad868722212ecfa5f545e08847f2f0c783e[m
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Thu Apr 10 00:55:03 2025 +0300
+
+    added a temp app.jsx and index.jsx
+
+[33mcommit 2f11bfd6400170e3a0833fa8f8655dd1653108e3[m
+Author: Elvis Kuria <levonjoroge>
+Date:   Wed Apr 9 21:32:19 2025 +0300
+
+    changed footer
+
+[33mcommit b774d6d6909a565f639b322fd2496960de22632d[m
+Author: Azrielski <victorngae20@gmail.com>
+Date:   Wed Apr 9 21:04:31 2025 +0300
+
+    last bit of backend
+
+[33mcommit 10988c624ce8e56cc580f65dc233807bd5b2e299[m
+Author: Elvis Kuria <levonjoroge>
+Date:   Wed Apr 9 20:34:26 2025 +0300
+
+    added components and login
+
+[33mcommit b36079a2be6780c735e8a2a239ff73ef593c5852[m
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Wed Apr 9 11:46:44 2025 +0300
+
+    logic.js change
+
+[33mcommit 03d662e940ca45e77878ddcee6fc7fee589baf3f[m
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Wed Apr 9 00:55:40 2025 +0300
+
+    created api request file
+
+[33mcommit fa514cf12e902df0f7f5995994c2f80c2e384772[m
+Merge: 69c954b6 7416ec97
+Author: Leo Muraya <murayaleo911@gmail.com>
+Date:   Tue Apr 8 20:08:21 2025 +0300
+
+    Merge pull request #1 from Leo-Muraya/globo
+    
+    Globo
+
+[33mcommit 7416ec97d89b585cf2498465b16d961fdfa36450[m
+Author: Azrielski <victorngae20@gmail.com>
+Date:   Tue Apr 8 19:49:22 2025 +0300
+
+    creating order routes
+
+[33mcommit b19e9ebaa92f6f346891604ef68addc7f83299b7[m
+Author: Azrielski <victorngae20@gmail.com>
+Date:   Tue Apr 8 14:28:12 2025 +0300
+
+    pushing commit
+
+[33mcommit 2212985270a7b48fb3f5d81d828d692195c3cb39[m
+Author: Azrielski <victorngae20@gmail.com>
+Date:   Tue Apr 8 00:55:49 2025 +0300
+
+    route tests
+
+[33mcommit c736796d9296cac66efa8250cec5b4babcc0e657[m
+Author: Azrielski <victorngae20@gmail.com>
+Date:   Tue Apr 8 00:46:42 2025 +0300
+
+    app.py creation
+
+[33mcommit 69c954b6332926a067f38405030c8515f4f56ff3[m[33m ([m[1;31morigin/your-feature-branch[m[33m)[m
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Mon Apr 7 10:26:20 2025 +0300
+
+    added seed.py.
+
+[33mcommit c777500f912a26d9383f43f7ac80b3b502920eed[m
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Mon Apr 7 10:06:46 2025 +0300
+
+    added files
+
+[33mcommit c951af3a5ca22942a9582045493a26bd70aa16e0[m
+Author: Leguminous <murayaleo911@gmail.com>
+Date:   Mon Apr 7 09:46:27 2025 +0300
+
+    first commit
+
+[33mcommit 062ca0c6b727c99b5b2651509d6975081aa27e66[m
+Author: Leo Muraya <murayaleo911@gmail.com>
+Date:   Fri Apr 4 21:24:49 2025 +0300
+
+    Initial commit

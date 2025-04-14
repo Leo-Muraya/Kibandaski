@@ -4,41 +4,53 @@ import SignUp from './components/Signup';
 import Login from './components/Login';
 import Homepage from './components/Homepage';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import Profile from './components/Profile';  // New Profile Component
 =======
 import RestaurantPage from './Restaurantpage'; 
 import { RestaurantDetail } from './components/RestrauntDetails';
 >>>>>>> da284935ad2844064f046a972ace2b26c96d0c94
+=======
+import Profile from './components/Profile';
+import RestaurantPage from './Restaurantpage'; // Add this
+import Cart from './components/Cart'; // Add this
+import './App.css'; // Add this at the top
+>>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
 
 const App = () => {
   const [user, setUser] = useState(null);
 
-  // Check if the user is logged in on app load
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user'));
-    if (userData) {
+    const token = localStorage.getItem('authToken'); // Check for token
+    if (userData && token) {
       setUser(userData);
     }
   }, []);
 
-  // Handle user login and store the data in localStorage
   const handleLogin = (userData) => {
     setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData)); // Store user data in localStorage
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('authToken', userData.token); // Store token
   };
 
-  // Handle user logout and remove from localStorage
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem('user'); // Remove user data from localStorage
+    localStorage.removeItem('user');
+    localStorage.removeItem('authToken'); // Remove token
   };
 
   return (
     <Routes>
 <<<<<<< HEAD
+<<<<<<< HEAD
       {/* Login route */}
+=======
+>>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
       <Route path="/login" element={<Login handleLogin={handleLogin} />} />
+      <Route path="/signup" element={<SignUp setUser={setUser} />} />
       
+<<<<<<< HEAD
       {/* Signup route */}
       <Route path="/signup" element={<SignUp setUser={setUser} />} /> {/* Pass setUser here */}
       
@@ -63,6 +75,23 @@ const App = () => {
       <Route path="/restaurant/:id" element={<RestaurantPage />} /> 
       <Route path="/restaurant/:id/menu" element={<RestaurantDetail/>} />
 >>>>>>> da284935ad2844064f046a972ace2b26c96d0c94
+=======
+      {/* Protected Routes */}
+      {user && (
+        <>
+          <Route path="/home" element={<Homepage user={user} handleLogout={handleLogout} />} />
+          <Route path="/profile" element={<Profile user={user} />} />
+          <Route path="/restaurants/:id" element={<RestaurantPage />} />
+          <Route path="/cart" element={<Cart />} />
+        </>
+      )}
+
+      {/* Redirects */}
+      <Route path="/" element={
+        user ? <Navigate to="/home" /> : <Navigate to="/login" />
+      } />
+      <Route path="*" element={<Navigate to={user ? "/home" : "/login"} />} />
+>>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
     </Routes>
   );
 };

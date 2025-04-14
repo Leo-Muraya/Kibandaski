@@ -1,137 +1,162 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { login } from '../api'; // Assuming you have the login API method
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { login } from "../api";
 
-const Login = ({ setUser }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null); // For handling error messages
+const Login = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     try {
-      // Send email as username_or_email in the request body
-      const response = await login({ username_or_email: email, password });
-
-      // Check if the response contains a token
-      if (response.token) {
-        // Save the token in localStorage
-        localStorage.setItem('token', response.token);
-
-        // Optionally save the user data as well
-        localStorage.setItem('user', JSON.stringify({ username: response.username, email }));
-
-        // Set the user data in the app state
-        setUser({ username: response.username, email });
-
-        // Redirect to homepage
-        navigate('/home');
-      } else {
-        setError('Invalid credentials, please try again.');
-      }
-    } catch (error) {
-      console.error('Login failed:', error);
-      setError('Login failed. Please try again.');
+      const response = await login({ username, password });
+      
+      localStorage.setItem("authToken", response.token);
+      localStorage.setItem("user", JSON.stringify({
+        id: response.user_id,
+        username: response.username
+      }));
+      
+      navigate("/home");
+    } catch (err) {
+      setError(err.message.includes("401") 
+        ? "Invalid username or password" 
+        : "Login failed. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const styles = {
+    wrapper: {
+      backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+        url('https://images.unsplash.com/photo-1504674900247-0877df9cc836')`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      minHeight: "100vh",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: "20px",
+    },
+    loginContainer: {
+      backgroundColor: "rgba(255, 255, 255, 0.95)",
+      padding: "40px 35px",
+      borderRadius: "20px",
+      width: "100%",
+      maxWidth: "420px",
+      boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+      textAlign: "center",
+      border: "1px solid rgba(255, 255, 255, 0.2)",
+      boxSizing: "border-box",
+    },
+    header: {
+      fontSize: "2.2rem",
+      marginBottom: "15px",
+      color: "#2d3436",
+      fontWeight: "700",
+      letterSpacing: "-0.5px",
+    },
+    subtitle: {
+      fontSize: "1rem",
+      color: "#666",
+      marginBottom: "30px",
+      fontWeight: "500",
+    },
+    input: {
+      width: "90%",
+      padding: "14px 20px",
+      margin: "12px 0",
+      borderRadius: "10px",
+      border: "2px solid #e0e0e0",
+      backgroundColor: "#f8f9fa",
+      fontSize: "16px",
+      transition: "all 0.3s ease",
+      outline: "none",
+    },
+    button: {
+      width: "90%",
+      padding: "16px",
+      backgroundColor: "#F7A38E",
+      border: "none",
+      color: "#fff",
+      fontSize: "16px",
+      fontWeight: "600",
+      borderRadius: "10px",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+      marginTop: "15px",
+      opacity: isLoading ? 0.7 : 1,
+      pointerEvents: isLoading ? "none" : "auto",
+    },
+    error: {
+      color: "#e74c3c",
+      backgroundColor: "#fdeded",
+      padding: "12px",
+      borderRadius: "8px",
+      margin: "15px 0",
+      fontSize: "14px",
+      border: "1px solid #f5c6cb",
+    },
+    text: {
+      marginTop: "20px",
+      fontSize: "14px",
+      color: "#666",
+      fontWeight: "500",
+    },
+    link: {
+      color: "#F7A38E",
+      textDecoration: "none",
+      fontWeight: "600",
+    },
   };
 
   return (
     <div style={styles.wrapper}>
-      <div style={styles.loginContainer}>
-        <h2 style={styles.header}>Welcome to Kibandaski!</h2>
-        <p style={styles.subtitle}>Please log in to continue.</p>
-        <form onSubmit={handleLogin}>
-          <input
-            style={styles.input}
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            style={styles.input}
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button type="submit" style={styles.button}>Login</button>
-        </form>
-        {error && <p style={styles.error}>{error}</p>}
-        <p style={styles.text}>Don't have an account? <a href="/signup" style={styles.link}>Register</a></p>
-      </div>
+      <form onSubmit={handleLogin} style={styles.loginContainer}>
+        <h2 style={styles.header}>Welcome to Kibandaski</h2>
+        <p style={styles.subtitle}>Please log in to continue</p>
+
+        {error && <div style={styles.error}>{error}</div>}
+
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+          style={styles.input}
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          style={styles.input}
+        />
+
+        <button type="submit" style={styles.button}>
+          {isLoading ? "Signing In..." : "Login"}
+        </button>
+
+        <p style={styles.text}>
+          New here?{" "}
+          <Link to="/signup" style={styles.link}>
+            Create an account
+          </Link>
+        </p>
+      </form>
     </div>
   );
-};
-
-const styles = {
-  wrapper: {
-    backgroundImage: 'url(https://teamnutrition.ca/sites/default/files/articles/Inte%CC%81rieur%20restaurant%20-%20Restaurant%20interior.jpeg)', // Replace with your image URL or local path
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    minHeight: '100vh', // Ensure it covers the entire height of the viewport
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: '20px', // Optional padding around the container
-  },
-  loginContainer: {
-    backgroundColor: '#fff', // White background for the form container
-    padding: '40px',
-    borderRadius: '8px',
-    width: '100%',
-    maxWidth: '400px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-    color: 'black', // Text color for the form
-    textAlign: 'center',
-    zIndex: 1, // Make sure it's above the background image
-  },
-  header: {
-    fontSize: '2rem',
-    marginBottom: '10px',
-  },
-  subtitle: {
-    fontSize: '1rem',
-    color: '#aaa',
-    marginBottom: '20px',
-  },
-  input: {
-    width: '100%',
-    padding: '10px',
-    margin: '10px 0',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-    backgroundColor: '#f5f5f5',
-    color: 'black',
-    fontSize: '16px',
-  },
-  button: {
-    width: '100%',
-    padding: '10px',
-    backgroundColor: '#f39c12',
-    border: 'none',
-    color: 'white',
-    fontSize: '16px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  error: {
-    color: '#e74c3c',
-    fontSize: '14px',
-    marginTop: '10px',
-  },
-  text: {
-    marginTop: '10px',
-    color: '#aaa',
-  },
-  link: {
-    color: '#f39c12',
-    textDecoration: 'none',
-  }
 };
 
 export default Login;
