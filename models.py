@@ -54,6 +54,7 @@ class FoodItem(db.Model):
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Float, nullable=False)
     restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurants.id"))
+    image = db.Column(db.String)
 
     order_items = db.relationship("OrderFoodItem", backref="food_item", cascade="all, delete-orphan")
     reviews = db.relationship("Review", backref="food_item", cascade="all, delete-orphan")

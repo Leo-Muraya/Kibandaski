@@ -38,9 +38,9 @@ export const checkLoginStatus = () => !!localStorage.getItem('authToken');
 
 // ================= RESTAURANTS =================
 export const fetchRestaurants = () => apiRequest('/restaurants');
-export const getRestaurantDetails = (restaurantId) => 
+export const getRestaurantById = (restaurantId) => 
   apiRequest(`/restaurants/${restaurantId}`);
-export const fetchRestaurantMenu = (restaurantId) => 
+export const getFoodItemsForRestaurant = (restaurantId) => 
   apiRequest(`/restaurants/${restaurantId}/menu`);
 
 // ================= ORDERS =================
