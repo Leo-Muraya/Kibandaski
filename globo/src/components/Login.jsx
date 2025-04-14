@@ -1,68 +1,84 @@
-import React from 'react';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { fetchUserProfile } from '../api'; // Fixed import name to match your API.js
 
-const Login = () => {
-  const navigate = useNavigate();
-  
-  const formik = useFormik({
-    initialValues: {
-      email: '',
-      password: '',
-    },
-    validationSchema: Yup.object({
-      email: Yup.string().email('Invalid email address').required('Email is required'),
-      password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
-    }),
-    onSubmit: async (values) => {
+const Profile = () => {
+  const [profile, setProfile] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadProfile = async () => {
       try {
-       
-        console.log('User logged in with:', values);
-
-        //store user info in localStorage or sessionStorage
-        localStorage.setItem('user', JSON.stringify({ name: 'John Doe', email: values.email, token: 'sampleToken' }));
-
-        // Redirect to homepage after successful login
-        navigate('/home');
-      } catch (err) {
-        console.log('Error during login:', err);
+        const data = await fetchUserProfile(); // Changed to match API.js export
+        setProfile(data.user);
+        setOrders(data.orders || []);
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+        setError('Failed to load profile data');
+      } finally {
+        setLoading(false);
       }
-    },
-  });
+    };
+    loadProfile();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center p-8">Loading profile...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center p-8 text-red-500">{error}</div>;
+  }
 
   return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={formik.handleSubmit}>
-        <div>
-          <label htmlFor="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.email}
-          />
-          {formik.touched.email && formik.errors.email ? <div>{formik.errors.email}</div> : null}
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="bg-white rounded-lg shadow-md p-6">
+        {/* Profile Header */}
+        <div className="flex items-center gap-6 mb-8">
+          <div className="bg-orange-100 p-4 rounded-full">
+            <span className="text-2xl">👤</span>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">
+              {profile?.username || 'Anonymous User'}
+            </h2>
+            <p className="text-gray-600">{profile?.email || 'No email provided'}</p>
+          </div>
         </div>
-        <div>
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.password}
-          />
-          {formik.touched.password && formik.errors.password ? <div>{formik.errors.password}</div> : null}
-        </div>
-        <button type="submit">Login</button>
-      </form>
+
+        {/* Order History */}
+        <h3 className="text-xl font-semibold mb-4">Order History</h3>
+        {orders.length === 0 ? (
+          <p className="text-gray-500">No orders found</p>
+        ) : (
+          orders.map((order) => (
+            <div key={order.id} className="border-b border-orange-100 py-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-gray-600">
+                  {order.timestamp ? 
+                    new Date(order.timestamp).toLocaleDateString() : 
+                    'Date not available'}
+                </span>
+                <span
+                  className={`px-3 py-1 rounded-full ${
+                    order.status === 'Delivered'
+                      ? 'bg-green-100 text-green-600'
+                      : 'bg-orange-100 text-orange-600'
+                  }`}
+                >
+                  {order.status || 'Unknown status'}
+                </span>
+              </div>
+              <p className="text-gray-800">
+                Total: Ksh {order.total_price?.toFixed(2) || '0.00'}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
 
-export default Login;
+export default Profile;
