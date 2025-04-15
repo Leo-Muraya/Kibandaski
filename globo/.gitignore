@@ -21,3 +21,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+<<<<<<< HEAD
+=======
+
+# Python cache files
+__pycache__/
+>>>>>>> 67661aeac307493fff0d92957db9ff58fee7f17c

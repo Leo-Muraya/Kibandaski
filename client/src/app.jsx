@@ -1,7 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { AuthProvider, store } from './logic';
+<<<<<<< HEAD
 import { Home, RestaurantDetail, Checkout } from './components';
+=======
+import { Home, RestaurantDetail, Checkout } from './pages';
+>>>>>>> 67661aeac307493fff0d92957db9ff58fee7f17c
 import { Navbar } from './components';
 import '../styles/main.css';
 

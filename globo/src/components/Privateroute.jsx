@@ -18,4 +18,8 @@ const PrivateRoute = ({ component: Component, ...rest }) => {
   );
 };
 
+<<<<<<< HEAD
 export default PrivateRoute;
+=======
+export default PrivateRoute;
+>>>>>>> 67661aeac307493fff0d92957db9ff58fee7f17c
