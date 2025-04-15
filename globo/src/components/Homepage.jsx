@@ -8,7 +8,6 @@ import { Link, useNavigate } from "react-router-dom";
 =======
 import { Link, useNavigate } from "react-router-dom";
 import { fetchRestaurants } from "../api";
->>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
 
 const Homepage = ({ user, handleLogout }) => {
   const [restaurants, setRestaurants] = useState([]);
@@ -17,6 +16,7 @@ const Homepage = ({ user, handleLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [sortBy, setSortBy] = useState("ratingDesc");
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const navigate = useNavigate();
 
@@ -140,14 +140,18 @@ const Homepage = ({ user, handleLogout }) => {
     const getRestaurants = async () => {
       try {
         const data = await fetchRestaurants();
-        setRestaurants(data);
+        const restaurantsWithImages = data.map((r, index) => ({
+          ...r,
+          image: placeholderImages[index % placeholderImages.length]
+        }));
+        setRestaurants(restaurantsWithImages);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching restaurants:", error);
         setLoading(false);
       }
     };
-    
+
     getRestaurants();
 >>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
   }, [navigate]);
@@ -173,146 +177,19 @@ const Homepage = ({ user, handleLogout }) => {
 
     setFilteredRestaurants(filtered);
   }, [restaurants, searchQuery, selectedLocation, sortBy]);
+  
+// Change slide every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prevSlide) => (prevSlide + 1) % placeholderImages.length);
+    }, 3000); 
+
+    return () => clearInterval(interval); 
+  }, []);
 
   const locations = ["All", ...new Set(restaurants.map((r) => r.location))];
 
   return (
-<<<<<<< HEAD
-    <div className="homepage-container">
-      {/* Floating Navigation Bar */}
-      <nav className="navbar">
-        <Link to="/" className="nav-item active">
-          <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          <span className="nav-text">Home</span>
-        </Link>
-        
-        <Link to="/search" className="nav-item">
-          <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <span className="nav-text">Search</span>
-        </Link>
-
-        <Link to="/orders" className="nav-item">
-          <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          <span className="nav-text">Orders</span>
-        </Link>
-
-        <div className="nav-item" onClick={handleLogout}>
-          <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          <span className="nav-text">Logout</span>
->>>>>>> da284935ad2844064f046a972ace2b26c96d0c94
-        </div>
-      </nav>
-
-<<<<<<< HEAD
-      {/* Restaurant Cards */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-          gap: "1.5rem",
-        }}
-      >
-        {restaurants.map((restaurant) => (
-          <div
-            key={restaurant.id}
-            style={{
-              backgroundColor: "#1a1a1a",
-              borderRadius: "12px",
-              overflow: "hidden",
-              boxShadow: "0 2px 10px rgba(255,255,255,0.1)",
-              transition: "transform 0.3s ease",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.transform = "translateY(-5px)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.transform = "translateY(0)")
-            }
-          >
-            <div
-              style={{
-                position: "relative",
-                height: "180px",
-                overflow: "hidden",
-              }}
-            >
-              <img
-                src={restaurant.image}
-                alt={restaurant.name}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-              <span
-                style={{
-                  position: "absolute",
-                  top: "8px",
-                  left: "8px",
-                  backgroundColor: "rgba(0, 0, 0, 0.7)",
-                  color: "#fff",
-                  padding: "4px 8px",
-                  borderRadius: "5px",
-                  fontSize: "0.8rem",
-                }}
-              >
-                {restaurant.status}
-              </span>
-            </div>
-            <div style={{ padding: "1rem" }}>
-              <h3 style={{ margin: "0 0 0.5rem", color: "#fff" }}>
-                {restaurant.name}
-              </h3>
-              <p style={{ margin: "0.3rem 0", color: "#ccc" }}>
-                {restaurant.location}
-              </p>
-              <p style={{ margin: "0.3rem 0", color: "#ccc" }}>
-                ⭐ {restaurant.rating.toFixed(1)}
-              </p>
-              <Link
-                to={`/restaurant/${restaurant.id}`}
-                style={{
-                  display: "inline-block",
-                  marginTop: "0.5rem",
-                  backgroundColor: "#ffd700",
-                  color: "#000",
-                  padding: "0.4rem 0.8rem",
-                  borderRadius: "6px",
-                  fontWeight: "bold",
-                  textDecoration: "none",
-                }}
-              >
-                View Menu
-              </Link>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <footer
-        style={{
-          textAlign: "center",
-          padding: "2rem 0",
-          color: "#777",
-          fontSize: "0.9rem",
-        }}
-      >
-        <p>© 2025 Kibandaski App</p>
-      </footer>
-=======
-      {/* Main Content */}
-      <div className="main-content">
-        {/* User Profile Header */}
-        <div className="profile-header">
-          <h1 className="welcome-message">
-            Good morning, {user?.name}
-            <span role="img" aria-label="hand-wave">👋</span>
-=======
     <div style={{ padding: "1rem 2rem", backgroundColor: "#fef8f7", minHeight: "100vh" }}>
       {/* Navbar */}
       <header style={{ 
@@ -327,14 +204,14 @@ const Homepage = ({ user, handleLogout }) => {
         boxShadow: "0 4px 12px rgba(247, 163, 142, 0.2)"
       }}>
         <div style={{ display: "flex", alignItems: "center" }}>
-          <img 
-            src="https://img.icons8.com/ios-filled/50/ffffff/restaurant.png" 
-            alt="Logo" 
-            style={{ width: "30px", height: "30px", marginRight: "10px" }} 
+          <img
+            src="https://img.icons8.com/ios-filled/50/ffffff/restaurant.png"
+            alt="Logo"
+            style={{ width: "30px", height: "30px", marginRight: "10px" }}
           />
-          <h1 style={{ 
+          <h1 style={{
             color: "#fff",
-            fontSize: "2.5rem",
+            fontSize: "2rem", // Slightly smaller font size
             fontWeight: "bold",
             letterSpacing: "-1px"
           }}>
@@ -342,52 +219,75 @@ const Homepage = ({ user, handleLogout }) => {
 >>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
           </h1>
         </div>
-
+  
         <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-          <Link to="/cart" style={{ color: "#fff", display: "flex", alignItems: "center" }}>
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="24" 
-              height="24" 
-              viewBox="0 0 24 24"
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2"
-              style={{ marginRight: "8px" }}
-            >
-              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <path d="M16 10a4 4 0 0 1-8 0"></path>
-            </svg>
-            Cart
-          </Link>
+          {/* Search Bar in the Navbar */}
+          <input
+            type="text"
+            placeholder="Search restaurants..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              padding: "0.8rem",
+              borderRadius: "10px",
+              border: "1px solid #ffc2c5",
+              backgroundColor: "#fff",
+              width: "300px",
+              fontSize: "1rem",
+              textAlign: "center", // To center the text inside the search bar
+            }}
+          />
           
+          {/* Cart Icon */}
+          <Link
+            to="/cart"
+            style={{
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              textDecoration: "none",
+              transition: "color 0.2s ease",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#2d3436")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#fff")}
+          >
+            🛒 Cart
+          </Link>
+  
+          {/* User Profile */}
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-              <img 
-                src="https://www.gravatar.com/avatar?d=mp&s=40" 
-                alt="User profile" 
-                style={{ 
-                  width: "40px", 
-                  height: "40px", 
-                  borderRadius: "50%", 
-                  border: "2px solid #f08b72" 
-                }} 
+              <img
+                src="https://www.gravatar.com/avatar?d=mp&s=40"
+                alt="User profile"
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "50%",
+                  border: "2px solid #f39c9c"
+                }}
               />
               <div>
                 <span style={{ color: "#fff", fontWeight: "bold" }}>{user?.username}</span>
-                <button 
-                  onClick={handleLogout} 
-                  style={{ 
+                <button
+                  onClick={handleLogout}
+                  style={{
                     display: "block",
-                    padding: "0.5rem 1rem", 
-                    cursor: "pointer", 
-                    backgroundColor: "#f08b72",
-                    color: "#fff", 
-                    border: "none", 
-                    borderRadius: "6px", 
+                    padding: "0.5rem 1rem",
+                    cursor: "pointer",
+                    backgroundColor: "#f39c9c",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "6px",
                     fontWeight: "bold",
-                    marginTop: "4px"
+                    marginTop: "4px",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#ff8f95";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f39c9c";
                   }}
                 >
                   Logout
@@ -399,39 +299,58 @@ const Homepage = ({ user, handleLogout }) => {
           )}
         </div>
       </header>
-
+  
+      {/* Featured Text - Moved to the Left */}
+      <section style={{
+        marginBottom: "2rem",
+        fontSize: "2rem",
+        fontWeight: "bold",
+        color: "#FFB6B9",
+        textAlign: "left", // Move it to the left
+        marginLeft: "2rem"
+      }}>
+        Featured on Kibandaski
+      </section>
+  
+      {/* Slideshow Section */}
+      <section style={{ marginBottom: "2rem" }}>
+        <div style={{
+          position: "relative",
+          width: "100%",
+          height: "250px",
+          borderRadius: "15px",
+          overflow: "hidden"
+        }}>
+          <img
+            src={placeholderImages[currentSlide]}
+            alt="Happy customer or delivery person"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transition: "opacity 0.5s ease",
+            }}
+          />
+        </div>
+      </section>
+  
       {/* Filters Section */}
-      <section style={{ 
-        marginBottom: "2rem", 
-        display: "flex", 
-        flexWrap: "wrap", 
-        gap: "1rem", 
+      <section style={{
+        marginBottom: "2rem",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "1rem",
         justifyContent: "center",
         alignItems: "center"
       }}>
-        <input
-          type="text"
-          placeholder="Search restaurants..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ 
-            padding: "0.8rem", 
-            borderRadius: "10px", 
-            border: "1px solid #f9c8bb", 
-            backgroundColor: "#fff",
-            width: "300px",
-            fontSize: "1rem"
-          }}
-        />
-
         <select
           value={selectedLocation}
           onChange={(e) => setSelectedLocation(e.target.value)}
-          style={{ 
-            padding: "0.8rem", 
-            borderRadius: "10px", 
-            border: "1px solid #f9c8bb", 
-            backgroundColor: "#fff", 
+          style={{
+            padding: "0.8rem",
+            borderRadius: "10px",
+            border: "1px solid #ffc2c5",
+            backgroundColor: "#fff",
             color: "#2d3436",
             fontSize: "1rem"
           }}
@@ -442,15 +361,15 @@ const Homepage = ({ user, handleLogout }) => {
             </option>
           ))}
         </select>
-
+  
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          style={{ 
-            padding: "0.8rem", 
-            borderRadius: "10px", 
-            border: "1px solid #f9c8bb", 
-            backgroundColor: "#fff", 
+          style={{
+            padding: "0.8rem",
+            borderRadius: "10px",
+            border: "1px solid #ffc2c5",
+            backgroundColor: "#fff",
             color: "#2d3436",
             fontSize: "1rem"
           }}
@@ -459,82 +378,83 @@ const Homepage = ({ user, handleLogout }) => {
           <option value="ratingAsc">Sort: Rating (Low to High)</option>
         </select>
       </section>
-
+  
       {/* Restaurant Grid */}
       {loading ? (
         <p style={{ textAlign: "center", color: "#6b4a42" }}>Loading restaurants...</p>
+      ) : filteredRestaurants.length === 0 ? (
+        <p style={{ textAlign: "center", color: "#6b4a42", fontSize: "1.2rem" }}>
+          No restaurants found for your search/filter.
+        </p>
       ) : (
-        <div style={{ 
-          display: "grid", 
-          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", 
-          gap: "1.5rem",
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "0 1rem"
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+          gap: "1.5rem"
         }}>
           {filteredRestaurants.map((restaurant) => (
             <div
               key={restaurant.id}
               style={{
                 backgroundColor: "#fff",
-                borderRadius: "15px",
-                overflow: "hidden",
-                boxShadow: "0 4px 12px rgba(247, 163, 142, 0.1)",
-                transition: "transform 0.3s ease",
+                padding: "1rem",
+                borderRadius: "10px",
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                transition: "box-shadow 0.3s ease",
+                overflow: "hidden"
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-5px)")}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
             >
-              <div style={{ position: "relative", height: "200px", overflow: "hidden" }}>
-                <img 
-                  src={restaurant.image || "https://via.placeholder.com/300x200?text=No+Image"} 
-                  alt={restaurant.name} 
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-                />
-                <span style={{ 
-                  position: "absolute", 
-                  top: "8px", 
-                  left: "8px", 
-                  backgroundColor: "rgba(247, 163, 142, 0.9)", 
-                  color: "#fff", 
-                  padding: "6px 12px", 
-                  borderRadius: "5px", 
-                  fontSize: "0.9rem"
-                }}>
-                  {restaurant.status || "Open"}
-                </span>
+              <img
+                src={restaurant.image}
+                alt={restaurant.name}
+                style={{
+                  width: "100%",
+                  height: "200px",
+                  objectFit: "cover",
+                  borderRadius: "10px",
+                }}
+              />
+              <h3 style={{
+                fontSize: "1.5rem",
+                fontWeight: "bold",
+                marginTop: "1rem",
+                color: "#333"
+              }}>
+                {restaurant.name}
+              </h3>
+              <p style={{
+                fontSize: "1rem",
+                color: "#777",
+                margin: "0.5rem 0"
+              }}>
+                {restaurant.location}
+              </p>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                fontSize: "1.2rem",
+                color: "#f39c9c"
+              }}>
+                <span>⭐</span>
+                <span>{restaurant.rating}</span>
               </div>
-              <div style={{ padding: "1.5rem" }}>
-                <h3 style={{ margin: "0 0 0.5rem", color: "#2d3436" }}>{restaurant.name}</h3>
-                <p style={{ margin: "0.3rem 0", color: "#6b4a42" }}>{restaurant.location}</p>
-                <p style={{ margin: "0.3rem 0", color: "#6b4a42" }}>
-                  ⭐ {restaurant.rating ? restaurant.rating.toFixed(1) : "N/A"}
-                </p>
-                <Link
-                  to={`/restaurants/${restaurant.id}`}
-                  style={{
-                    display: "inline-block",
-                    marginTop: "1rem",
-                    backgroundColor: "#F7A38E",
-                    color: "#fff",
-                    padding: "0.8rem 1.2rem",
-                    borderRadius: "8px",
-                    fontWeight: "bold",
-                    textDecoration: "none",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f08b72";
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#F7A38E";
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }}
-                >
-                  View Menu
-                </Link>
-              </div>
+              <Link
+                to={`/restaurants/${restaurant.id}/menu`}
+                style={{
+                  display: "inline-block",
+                  padding: "0.8rem 1.5rem",
+                  marginTop: "1rem",
+                  backgroundColor: "#f39c9c",
+                  color: "#fff",
+                  textAlign: "center",
+                  borderRadius: "5px",
+                  textDecoration: "none",
+                  fontWeight: "bold"
+                }}
+              >
+                View Menu
+              </Link>
             </div>
           ))}
         </div>
@@ -553,9 +473,9 @@ const Homepage = ({ user, handleLogout }) => {
       }}>
         <p>© 2024 Kibandaski App</p>
       </footer>
->>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
     </div>
   );
+  
 };
 
 export default Homepage;

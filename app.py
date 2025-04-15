@@ -1,13 +1,5 @@
 from flask import Flask, jsonify, request
-<<<<<<< HEAD
-<<<<<<< HEAD
-from models import db, bcrypt, User, Restaurant, Order, MenuItem, OrderFoodItem, FoodItem
-=======
-from models import db, bcrypt, User, Restaurant, Order, OrderFoodItem, FoodItem
->>>>>>> da284935ad2844064f046a972ace2b26c96d0c94
-=======
 from models import db, bcrypt, User, Restaurant, Order, FoodItem, OrderFoodItem, Review  # Updated import
->>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
@@ -37,7 +29,7 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key')
 >>>>>>> da284935ad2844064f046a972ace2b26c96d0c94
 =======
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key')
-app.config['JWT_SECRET_KEY'] = app.config['SECRET_KEY']  # for flask_jwt_extended
+app.config['JWT_SECRET_KEY'] = app.config['SECRET_KEY']  
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=1)
 >>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
 
@@ -45,7 +37,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=1)
 db.init_app(app)
 bcrypt.init_app(app)
 migrate = Migrate(app, db)
-jwt_manager = JWTManager(app)  # Was causing conflict as 'jwt'
+jwt_manager = JWTManager(app)  
 
 # ---------------- AUTH DECORATOR ----------------
 
@@ -92,8 +84,7 @@ def token_required(f):
 def signup():
     data = request.get_json()
 
-    # Log the received data for debugging
-    print("Received data:", data)  # This will log the data to the console
+    print("Received data:", data) 
     
     # Ensure that username, email, and password are provided
     username = data.get("username")
@@ -259,6 +250,41 @@ def get_restaurants():
         "rating": r.rating  # Assuming you have a `rating` field in your Restaurant model
     } for r in restaurants])
 
+#get restaurant by id
+@app.route("/api/restaurants/<int:id>/menu", methods=["GET"])
+def get_restaurant(id):
+    restaurant = Restaurant.query.get_or_404(id)
+    return jsonify({
+        "id": restaurant.id,
+        "name": restaurant.name,
+        "location": restaurant.location,
+        "rating": restaurant.rating,
+        "image": restaurant.image,
+        "menu_items": [
+            {
+                "id": item.id,
+                "name": item.name,
+                "price": item.price
+            } for item in restaurant.food_items
+        ]
+    })
+    #reviews
+@app.route('/restaurants/<int:restaurant_id>/review', methods=['POST'])
+@token_required
+def add_review(current_user, restaurant_id):
+    data = request.get_json()
+    rating = data.get("rating")
+    comment = data.get("comment", "")
+
+    if not rating or not (1 <= rating <= 5):
+        return jsonify({"message": "Rating must be between 1 and 5"}), 400
+
+    review = Review(user_id=current_user.id, restaurant_id=restaurant_id, rating=rating, comment=comment)
+    db.session.add(review)
+    db.session.commit()
+
+    return jsonify({"message": "Review added successfully"}), 201
+
 
 # Get menu
 @app.route('/restaurants/<int:restaurant_id>/menu', methods=['GET'])
@@ -268,11 +294,20 @@ def get_restaurant_menu(restaurant_id):
         return jsonify({"message": "Restaurant not found"}), 404
 
     menu_items = FoodItem.query.filter_by(restaurant_id=restaurant_id).all()
-    return jsonify([{
-        "id": item.id,
-        "name": item.name,
-        "price": item.price
-    } for item in menu_items])
+    return jsonify({
+        "id": restaurant.id,
+        "name": restaurant.name,
+        "location": restaurant.location,
+        "rating": restaurant.rating,
+        "image": restaurant.image,
+        "menu_items": [
+            {
+                "id": item.id,
+                "name": item.name,
+                "price": item.price
+            } for item in menu_items
+        ]
+    })
 
 # Create new order
 @app.route('/orders', methods=['POST'])
@@ -320,6 +355,34 @@ def create_order(current_user):
         "order_id": order.id,
         "total": total
     }), 201
+    
+#update order status
+@app.route('/orders/<int:order_id>/status', methods=['PATCH'])
+@token_required
+def update_order_status(current_user, order_id):
+    order = Order.query.filter_by(id=order_id, user_id=current_user.id).first()
+    if not order:
+        return jsonify({"error": "Order not found"}), 404
+
+    status = request.json.get('status')
+    if not status:
+        return jsonify({"error": "Missing status"}), 400
+
+    order.status = status
+    db.session.commit()
+
+    return jsonify({"message": "Order status updated"}), 200
+
+
+#user profile
+@app.route('/profile', methods=['GET'])
+@token_required
+def get_profile(current_user):
+    return jsonify({
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email
+    }), 200
 
 
 # Get all user orders
@@ -383,6 +446,23 @@ def handle_order_item(current_user, order_id, item_id):
         db.session.commit()
         
         return jsonify({"message": "Item removed"}), 200
+    
+@app.route('/orders/<int:order_id>', methods=['GET'])
+def get_order(order_id):
+    order = Order.query.get(order_id)
+
+    if not order:
+        return jsonify({"error": "Order not found"}), 404
+
+    return jsonify({
+        "id": order.id,
+        "user_id": order.user_id,
+        "restaurant_id": order.restaurant_id,
+        "status": order.status,
+        "total_price": order.total_price,
+        "timestamp": order.timestamp.isoformat(),
+    }), 200
+
 
 # Remove item from an order (cart)
 @app.route('/orders/<int:order_id>/items/<int:item_id>', methods=['DELETE'])
@@ -406,23 +486,23 @@ def remove_item_from_order(current_user, order_id, item_id):
 
     return jsonify({"message": "Item removed", "updated_total": total})
 
-# Update order status (e.g. to Delivered)
-@app.route('/orders/<int:order_id>', methods=['PATCH'])
-def update_order_status(order_id):
-    data = request.get_json()
-    order = Order.query.get(order_id)
+# # Update order status (e.g. to Delivered)
+# @app.route('/orders/<int:order_id>', methods=['PATCH'])
+# def update_order_status(order_id):
+#     data = request.get_json()
+#     order = Order.query.get(order_id)
     
-    if not order:
-        return jsonify({"message": "Order not found"}), 404
+#     if not order:
+#         return jsonify({"message": "Order not found"}), 404
 
-    if status := data.get('status'):
-        order.status = status
-        db.session.commit()
+#     if status := data.get('status'):
+#         order.status = status
+#         db.session.commit()
 
-    return jsonify({
-        "message": "Order updated",
-        "status": order.status
-    })
+#     return jsonify({
+#         "message": "Order updated",
+#         "status": order.status
+#     })
 
 <<<<<<< HEAD
 >>>>>>> da284935ad2844064f046a972ace2b26c96d0c94
@@ -534,7 +614,7 @@ def remove_cart_item(current_user, item_id):
         for item in cart.food_items
     )
     db.session.commit()
-
+ 
     return jsonify({"message": "Item removed"}), 200
 
 # ================= PROFILE ROUTES =================
@@ -747,7 +827,6 @@ def verify_token_route(current_user):
         }
     })
 
->>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
 @app.route('/')
 def home():
     app.logger.info("Home route accessed.")

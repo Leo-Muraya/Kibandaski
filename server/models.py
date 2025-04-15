@@ -53,24 +53,6 @@ class Restaurant(db.Model):
     image = db.Column(db.String(200), nullable=True)
 
     food_items = db.relationship("FoodItem", backref="restaurant", cascade="all, delete-orphan")
-<<<<<<< HEAD:server/models.py
-    
-<<<<<<< HEAD:server/models.py
-    
-class MenuItem(db.Model):
-    __tablename__ = "menu_items"
-    
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurants.id"))
-    
-# FoodItem Model
-=======
-
-
->>>>>>> da284935ad2844064f046a972ace2b26c96d0c94:models.py
-=======
     orders = db.relationship("Order", backref="restaurant", cascade="all, delete-orphan")  # 🔥 relationship to orders
 
 # FoodItem model
@@ -82,21 +64,18 @@ class FoodItem(db.Model):
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Float, nullable=False)
     restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurants.id"))
+    image = db.Column(db.String)
 
     order_items = db.relationship("OrderFoodItem", backref="food_item", cascade="all, delete-orphan")
     reviews = db.relationship("Review", backref="food_item", cascade="all, delete-orphan")
 
-<<<<<<< HEAD:server/models.py
-# Order Model
-=======
 # Order model (✅ updated)
->>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c:models.py
 class Order(db.Model):
     __tablename__ = "orders"
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurants.id"), nullable=False)  # ✅ added
+    restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurants.id"), nullable=False) 
     status = db.Column(db.String(50), default="Preparing")
     total_price = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
@@ -113,7 +92,7 @@ class Review(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
-    rating = db.Column(db.Integer, nullable=False)  # e.g., 1-5 stars
+    rating = db.Column(db.Integer, nullable=False)  
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     food_item_id = db.Column(db.Integer, db.ForeignKey("food_items.id"), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)

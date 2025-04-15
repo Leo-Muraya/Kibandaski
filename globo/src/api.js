@@ -83,30 +83,21 @@ export const login = async (credentials) => {
   }
 };
 
-// ================= AUTHENTICATION =================
+//AUTHENTICATION
 export const signup = (userData) => apiRequest('/signup', 'POST', userData);
 export const login = (credentials) => apiRequest('/login', 'POST', credentials);
 export const logout = () => localStorage.removeItem('authToken');
 export const checkLoginStatus = () => !!localStorage.getItem('authToken');
 
-<<<<<<< HEAD
-// Check if user is logged in by checking the presence of the JWT token
-export const checkLoginStatus = () => {
-  return !!localStorage.getItem('authToken');
-};
-=======
-// Authentication Context
-const AuthContext = createContext();
-=======
 // ================= RESTAURANTS =================
 export const fetchRestaurants = () => apiRequest('/restaurants');
-export const getRestaurantDetails = (restaurantId) => 
+export const getRestaurantById = (restaurantId) => 
   apiRequest(`/restaurants/${restaurantId}`);
-export const fetchRestaurantMenu = (restaurantId) => 
+export const getFoodItemsForRestaurant = (restaurantId) => 
   apiRequest(`/restaurants/${restaurantId}/menu`);
 >>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
 
-// ================= ORDERS =================
+//ORDERS
 export const createOrder = (orderData) => 
   apiRequest('/orders', 'POST', orderData, true);
 export const fetchUserOrders = () => 
@@ -114,7 +105,7 @@ export const fetchUserOrders = () =>
 export const updateOrderStatus = (orderId, status) => 
   apiRequest(`/orders/${orderId}`, 'PATCH', { status }, true);
 
-// ================= ORDER ITEMS =================
+//  ORDER ITEMS
 export const updateOrderItem = (orderId, itemId, quantity) => 
   apiRequest(`/orders/${orderId}/items/${itemId}`, 'PATCH', { quantity }, true);
 export const removeOrderItem = (orderId, itemId) => 
@@ -250,4 +241,3 @@ export const verifyToken = () =>
   apiRequest('/verify-token', 'GET', null, true);
 export const searchRestaurants = (query) => 
   apiRequest(`/search?q=${encodeURIComponent(query)}`);
->>>>>>> 454c74a82f706381a74ff5aa2db116fb47dcf60c
