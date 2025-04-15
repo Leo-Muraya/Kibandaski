@@ -1,64 +1,152 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useCart } from '../CartContext';
 import { useNavigate } from 'react-router-dom';
-import { checkoutOrder, fetchActiveCart } from '../api'; 
 
-const Checkout = ({ user }) => {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    address: '',
-    city: '',
-    paymentMethod: 'credit_card'
+const Checkout = () => {
+  const { cart, processCheckout } = useCart(); 
+  const navigate = useNavigate(); 
+  const [orderDetails, setOrderDetails] = useState({
+    deliveryAddress: '',
+    paymentMethod: 'Credit Card', // payments
   });
-  const [cartItems, setCartItems] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  useEffect(() => {
-    const loadCart = async () => {
-      try {
-        const response = await fetchActiveCart();
-        setCartItems(response.items);
-      } catch (err) {
-        console.error('Failed to fetch cart:', err);
-      }
-    };
-    loadCart();
-  }, []);
+  
+  if (!cart || cart.length === 0) {
+    return (
+      <div>
+        <h2>Your cart is empty. Please add items to your cart before proceeding to checkout.</h2>
+        <button
+          onClick={() => navigate('/home')}
+          style={{
+            padding: '1rem',
+            backgroundColor: '#2ecc71',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+          }}
+        >
+          Go Back to Homepage
+        </button>
+      </div>
+    );
+  }
 
-  const handleSubmit = async (e) => {
+  // Handle form submission and checkout processing
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const orderData = {
-        delivery_address: `${formData.address}, ${formData.city}`,
-        payment_method: formData.paymentMethod,
-        items: cartItems.map(item => ({
-          food_item_id: item.id,
-          quantity: item.quantity
-        })
-      )};
-
-      const response = await checkoutOrder(orderData);
-      
-      if (response.success) {
-        navigate('/order-confirmation', {
-          state: {
-            orderId: response.order.id,
-            total: response.order.total,
-            estimatedDelivery: response.order.estimated_delivery
-          }
-        });
-      }
-    } catch (err) {
-      setError(err.message || 'Checkout failed. Please try again.');
-    } finally {
-      setLoading(false);
+    if (cart.length === 0) {
+      alert('Your cart is empty!');
+      return;
     }
+
+    // Process checkout with order details
+    processCheckout(orderDetails);
+
+    //Redirect to order status page
+    navigate('/order-status');
   };
 
-  // Rest of your component remains the same...
+  return (
+    <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
+      <h2>Checkout</h2>
+      <form onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
+        <label>
+          Delivery Address:
+          <input
+            type="text"
+            value={orderDetails.deliveryAddress}
+            onChange={(e) =>
+              setOrderDetails({ ...orderDetails, deliveryAddress: e.target.value })
+            }
+            required
+            placeholder="Enter your delivery address"
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              borderRadius: '5px',
+              marginTop: '0.5rem',
+              border: '1px solid #ddd',
+            }}
+          />
+        </label>
+        <br />
+        <label>
+          Payment Method:
+          <select
+            value={orderDetails.paymentMethod}
+            onChange={(e) =>
+              setOrderDetails({ ...orderDetails, paymentMethod: e.target.value })
+            }
+            required
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              borderRadius: '5px',
+              marginTop: '0.5rem',
+              border: '1px solid #ddd',
+            }}
+          >
+            <option value="Credit Card">Credit Card</option>
+            <option value="Cash on Delivery">Cash on Delivery</option>
+          </select>
+        </label>
+        <br />
+        <button
+          type="submit"
+          style={{
+            padding: '1rem 2rem',
+            backgroundColor: '#2ecc71',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+            marginTop: '1rem',
+            fontSize: '1rem',
+            cursor: 'pointer',
+          }}
+        >
+          Proceed to Payment
+        </button>
+      </form>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+          gap: '1.5rem',
+        }}
+      >
+        {cart.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              border: '1px solid #ddd',
+              borderRadius: '10px',
+              padding: '1rem',
+              textAlign: 'center',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              backgroundColor: '#fff',
+            }}
+          >
+            <img
+              src={item.image} // Food item image
+              alt={item.name}
+              style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
+            />
+            <h3>{item.name}</h3>
+            <p>KES {item.price}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Display total price */}
+      <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+        <h3>
+          Total: KES{' '}
+          {cart.reduce((total, item) => total + item.price, 0).toFixed(2)}
+        </h3>
+      </div>
+    </div>
+  );
 };
 
 export default Checkout;

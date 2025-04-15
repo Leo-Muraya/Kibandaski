@@ -1,117 +1,98 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  fetchActiveCart, 
-  updateOrderItem, 
-  removeCartItem 
-} from '../api';
+import React from 'react';
+import { useCart } from '../CartContext';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirecting
 
 const Cart = () => {
-  const [cart, setCart] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { cart, removeFromCart } = useCart(); // Get cart items and remove function from context
+  const navigate = useNavigate(); // Initialize the navigate function
 
-  useEffect(() => {
-    const loadCart = async () => {
-      try {
-        const data = await fetchActiveCart();
-        setCart(data);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadCart();
-  }, []);
-
-  const handleUpdate = async (itemId, quantity) => {
-    try {
-      if (quantity < 1) return;
-      await updateOrderItem(itemId, quantity);
-      setCart(prev => prev.map(order => ({
-        ...order,
-        food_items: order.food_items.map(item => 
-          item.id === itemId ? { ...item, quantity } : item
-        ),
-        total_price: order.food_items.reduce(
-          (total, item) => total + (item.quantity * item.food_item.price), 0
-        )
-      })));
-    } catch (error) {
-      alert(error.message);
-    }
+  const handleRemove = (itemId) => {
+    removeFromCart(itemId); // Call remove from cart when an item is removed
   };
 
-  const handleRemove = async (itemId) => {
-    try {
-      await removeCartItem(itemId);
-      setCart(prev => prev.map(order => ({
-        ...order,
-        food_items: order.food_items.filter(item => item.id !== itemId)
-      })));
-    } catch (error) {
-      alert(error.message);
-    }
+  const handleCheckout = () => {
+    // Redirect to the checkout page
+    navigate('/checkout');
   };
 
-  if (loading) return <div className="text-center p-8">Loading cart...</div>;
-  if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
+  if (cart.length === 0) {
+    return <h2>Your cart is empty!</h2>;
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Your Cart</h2>
-      {cart.length === 0 ? (
-        <p className="text-gray-500 text-center">Your cart is empty</p>
-      ) : (
-        cart.map(order => (
-          <div key={order.id} className="mb-8 border-b border-orange-100 pb-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-gray-800">
-                {order.restaurant?.name || 'Unknown Restaurant'}
-              </h3>
-              <span className="text-orange-500 font-medium">
-                Status: {order.status}
-              </span>
-            </div>
-            
-            {order.food_items.map(item => (
-              <div key={item.id} className="flex justify-between items-center py-4 hover:bg-orange-50 px-4 rounded-lg">
-                <div className="flex-1">
-                  <p className="font-medium text-gray-800">{item.food_item.name}</p>
-                  <p className="text-gray-600">Ksh {item.food_item.price.toFixed(2)}</p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 bg-orange-100 px-3 py-1 rounded-full">
-                    <button 
-                      onClick={() => handleUpdate(item.id, item.quantity - 1)}
-                      className="text-orange-600 hover:text-orange-700 font-bold"
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center">{item.quantity}</span>
-                    <button 
-                      onClick={() => handleUpdate(item.id, item.quantity + 1)}
-                      className="text-orange-600 hover:text-orange-700 font-bold"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => handleRemove(item.id)}
-                    className="text-red-500 hover:text-red-700 font-medium"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))}
-            
-            <div className="mt-4 text-right font-semibold text-lg text-gray-800">
-              Order Total: Ksh {order.total_price.toFixed(2)}
-            </div>
+    <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
+      <h2>Your Cart</h2>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+          gap: '1.5rem',
+        }}
+      >
+        {cart.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              border: '1px solid #ddd',
+              borderRadius: '10px',
+              padding: '1rem',
+              textAlign: 'center',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              backgroundColor: '#fff',
+            }}
+          >
+            <img
+              src={item.image} // Food item image
+              alt={item.name}
+              style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
+            />
+            <h3>{item.name}</h3>
+            <p>KES {item.price}</p>
+            <button
+              onClick={() => handleRemove(item.id)}
+              style={{
+                marginTop: '1rem',
+                padding: '0.5rem 1rem',
+                border: 'none',
+                borderRadius: '5px',
+                backgroundColor: '#e74c3c',
+                color: '#fff',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+              }}
+            >
+              Remove from Cart
+            </button>
           </div>
-        ))
-      )}
+        ))}
+      </div>
+
+      {/* Display total price */}
+      <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+        <h3>
+          Total: KES{' '}
+          {cart.reduce((total, item) => total + item.price, 0).toFixed(2)}
+        </h3>
+      </div>
+
+      {/* Checkout Button */}
+      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+        <button
+          onClick={handleCheckout}
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#2ecc71',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+            fontSize: '1.1rem',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+          }}
+        >
+          Proceed to Checkout
+        </button>
+      </div>
     </div>
   );
 };
