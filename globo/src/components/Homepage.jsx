@@ -214,26 +214,75 @@ const Homepage = ({ user, handleLogout }) => {
       </section>
   
       {/* Slideshow Section */}
-      <section style={{ marginBottom: "2rem" }}>
-        <div style={{
-          position: "relative",
-          width: "100%",
-          height: "250px",
-          borderRadius: "15px",
-          overflow: "hidden"
-        }}>
-          <img
-            src={placeholderImages[currentSlide]}
-            alt="Happy customer or delivery person"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              transition: "opacity 0.5s ease",
-            }}
-          />
-        </div>
-      </section>
+      <section style={{ 
+  marginBottom: "2rem",
+  width: "100%",
+  borderRadius: "15px",
+  overflow: "hidden",
+  boxShadow: "0 4px 20px rgba(0,0,0,0.2)"
+}}>
+  <div style={{
+    position: "relative",
+    width: "100%",
+    paddingTop: "56.25%", // 16:9 aspect ratio
+    overflow: "hidden"
+  }}>
+    {/* Slide Image */}
+    <img
+      src={placeholderImages[currentSlide]}
+      alt="Featured restaurant"
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        transition: "opacity 0.8s ease",
+      }}
+    />
+
+    {/* Navigation Dots (Optional) */}
+    <div style={{
+      position: "absolute",
+      bottom: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      display: "flex",
+      gap: "10px",
+      zIndex: 2
+    }}>
+      {placeholderImages.map((_, index) => (
+        <button
+          key={index}
+          onClick={() => setCurrentSlide(index)}
+          style={{
+            width: currentSlide === index ? "20px" : "12px",
+            height: "12px",
+            borderRadius: "6px",
+            border: "none",
+            backgroundColor: currentSlide === index ? "#FFB6B9" : "rgba(255,255,255,0.5)",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+            padding: 0
+          }}
+          aria-label={`Go to slide ${index + 1}`}
+        />
+      ))}
+    </div>
+
+    {/* Semi-transparent Overlay (Optional) */}
+    <div style={{
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      width: "100%",
+      height: "30%",
+      background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)",
+      zIndex: 1
+    }} />
+  </div>
+</section>
   
       {/* Filters Section */}
       <section style={{
