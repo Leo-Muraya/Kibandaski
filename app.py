@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from models import db, bcrypt, User, Restaurant, Order, FoodItem, OrderFoodItem, Review  # Updated import
+from models import db, bcrypt, User, Restaurant, Order, FoodItem, OrderFoodItem, Review  
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
@@ -15,14 +15,14 @@ CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///food_delivery.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key')
-app.config['JWT_SECRET_KEY'] = app.config['SECRET_KEY']  # for flask_jwt_extended
+app.config['JWT_SECRET_KEY'] = app.config['SECRET_KEY']  
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=1)
 
 # Init extensions
 db.init_app(app)
 bcrypt.init_app(app)
 migrate = Migrate(app, db)
-jwt_manager = JWTManager(app)  # Was causing conflict as 'jwt'
+jwt_manager = JWTManager(app)  
 
 # ---------------- AUTH DECORATOR ----------------
 
@@ -59,8 +59,7 @@ def token_required(f):
 def signup():
     data = request.get_json()
 
-    # Log the received data for debugging
-    print("Received data:", data)  # This will log the data to the console
+    print("Received data:", data) 
     
     # Ensure that username, email, and password are provided
     username = data.get("username")
@@ -497,7 +496,7 @@ def remove_cart_item(current_user, item_id):
         for item in cart.food_items
     )
     db.session.commit()
-
+ 
     return jsonify({"message": "Item removed"}), 200
 
 # ================= PROFILE ROUTES =================

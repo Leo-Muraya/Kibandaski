@@ -3,14 +3,14 @@ import { useCart } from '../CartContext';
 import { useNavigate } from 'react-router-dom';
 
 const Checkout = () => {
-  const { cart, processCheckout } = useCart(); // Get cart context and processCheckout function
-  const navigate = useNavigate(); // Initialize navigate
+  const { cart, processCheckout } = useCart(); 
+  const navigate = useNavigate(); 
   const [orderDetails, setOrderDetails] = useState({
     deliveryAddress: '',
-    paymentMethod: 'Credit Card', // Default payment method
+    paymentMethod: 'Credit Card', // payments
   });
 
-  // If cart is empty or undefined, show an appropriate message
+  
   if (!cart || cart.length === 0) {
     return (
       <div>
@@ -42,7 +42,7 @@ const Checkout = () => {
     // Process checkout with order details
     processCheckout(orderDetails);
 
-    // Redirect to order status page (you can replace this with actual navigation logic)
+    //Redirect to order status page
     navigate('/order-status');
   };
 

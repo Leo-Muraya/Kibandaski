@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useCart } from '../CartContext';  // Import the CartContext to manage the cart
+import { useCart } from '../CartContext';  
 
 const RestaurantMenu = () => {
   const { restaurant_id } = useParams();
   const [restaurant, setRestaurant] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
-  const { addToCart } = useCart();  // Access the addToCart function from CartContext
+  const { addToCart } = useCart();  
 
   useEffect(() => {
     fetch(`http://localhost:5000/restaurants/${restaurant_id}/menu`)
@@ -99,7 +99,7 @@ const RestaurantMenu = () => {
             <h3 style={{ marginBottom: "0.5rem" }}>{item.name}</h3>
             <p style={{ fontWeight: "bold", color: "#2c3e50" }}>KES {item.price}</p>
             <button
-              onClick={() => handleAddToCart(item)}  // Handle the custom add to cart logic
+              onClick={() => handleAddToCart(item)}  
               style={{
                 marginTop: "1rem",
                 padding: "0.5rem 1rem",
