@@ -4,7 +4,10 @@ import SignUp from './components/Signup';
 import Login from './components/Login';
 import Homepage from './components/Homepage';
 import RestaurantPage from './Restaurantpage'; 
-import { RestaurantDetail } from './components/RestrauntDetails';
+import  RestaurantDetail  from './components/RestaurantDetails';
+import DriverTracker from './components/DriverTracker';
+import 'leaflet/dist/leaflet.css';
+
 
 const App = () => {
   return (
@@ -14,6 +17,7 @@ const App = () => {
       <Route path="/home" element={<Homepage />} />
       <Route path="/restaurant/:id" element={<RestaurantPage />} /> 
       <Route path="/restaurant/:id/menu" element={<RestaurantDetail/>} />
+      <Route path="/driver-tracker" element={<DriverTracker />} />  
     </Routes>
   );
 };

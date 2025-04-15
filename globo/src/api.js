@@ -2,7 +2,6 @@
 import axios from 'axios';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { configureStore, createSlice } from '@reduxjs/toolkit';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 // Axios configuration with JWT handling
@@ -142,6 +141,19 @@ export const orderService = {
   getHistory: async () => (await api.get('/orders')).data
 };
 
+export const fetchRestaurants = async () => {
+  return await restaurantService.getAll();
+};
+
+export const fetchUserProfile = async () => {
+  const { data } = await api.get('/me');
+  return data;
+};
+
+export const fetchRestaurantMenu = async (restaurantId) => {
+  return await restaurantService.getMenu(restaurantId);
+};
+
 // Utility Components
 export const useAsync = (asyncFunction) => {
   const [status, setStatus] = useState('idle');
@@ -174,4 +186,13 @@ export const ProtectedRoute = ({ children }) => {
   }, [user, loading, navigate]);
 
   return user ? children : null;
+};
+
+export const signup = async (userData) => {
+  try {
+    const { data } = await api.post('/signup', userData);
+    return data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Signup failed');
+  }
 };

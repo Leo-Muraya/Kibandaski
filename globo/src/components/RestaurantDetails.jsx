@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { fetchRestaurantMenu } from '../api';
 import FoodItem from './FoodItem';
 
-const RestaurantDetails = () => {
+const RestaurantDetail = () => {
   const { id } = useParams();
   const [restaurant, setRestaurant] = useState(null);
   const [menu, setMenu] = useState([]);
@@ -64,4 +64,4 @@ const RestaurantDetails = () => {
   );
 };
 
-export default RestaurantDetails;
+export default RestaurantDetail;

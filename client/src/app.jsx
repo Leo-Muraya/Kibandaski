@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { AuthProvider, store } from './logic';
-import { Home, RestaurantDetail, Checkout } from './pages';
+import { Home, RestaurantDetail, Checkout } from './components';
 import { Navbar } from './components';
 import '../styles/main.css';
 

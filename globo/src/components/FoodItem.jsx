@@ -22,3 +22,5 @@ export const FoodItem = ({ item }) => {
     </div>
   );
 };
+
+export default FoodItem;

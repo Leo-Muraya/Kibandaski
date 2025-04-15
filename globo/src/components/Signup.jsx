@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { signup } from '../api';
+import { useAuth } from '../api';
+
+// Removed the top-level useAuth call
 
 const SignUp = ({ setUser }) => {
+  const { signup } = useAuth(); // Moved useAuth inside the component
   const [formData, setFormData] = useState({
     username: '',
     email: '',
