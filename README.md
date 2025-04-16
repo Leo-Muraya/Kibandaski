@@ -2,7 +2,7 @@
 
 A full-stack food delivery application inspired by Glovo, built with Flask (Python) backend and React (JavaScript) frontend.
 
-![App Screenshot](screenshot.png) <!-- Add actual screenshot later -->
+![App Screenshot](./globo/src/images/Screenshot%20from%202025-04-16%2002-29-23.png) 
 
 ## Features
 
