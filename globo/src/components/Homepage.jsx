@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchRestaurants } from "../api";
+import { motion, AnimatePresence } from "framer-motion";
+
+
 
 const placeholderImages = [
   "https://tb-static.uber.com/prod/image-proc/processed_images/6019d977e4bb79ccbf79ada572a36d83/16bb0a3ab8ea98cfe8906135767f7bf4.webp",
@@ -12,7 +15,7 @@ const placeholderImages = [
   "https://jamesbreuhl.com/wp-content/uploads/2023/10/JAMES-BREUHL-THIBODAUX-LOUISIANA-3.jpg"
 ];
 
-const Homepage = ({ user, handleLogout }) => {
+const Homepage = ({ user, handleLogout }) => { 
   const [restaurants, setRestaurants] = useState([]);
   const [filteredRestaurants, setFilteredRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -95,12 +98,12 @@ const Homepage = ({ user, handleLogout }) => {
           justifyContent: "space-between",
           alignItems: "center",
           backgroundColor: "#FFB6B9",
-          padding: "0.5rem 2rem", // Reduced padding for smaller navbar
+          padding: "0.5rem 2rem",
           borderRadius: "15px",
           marginBottom: "2rem",
           border: "1px solid #f39c9c",
           boxShadow: "0 4px 12px rgba(255, 182, 185, 0.2)",
-          position: "sticky", // Make navbar sticky
+          position: "sticky",
           top: 0,
           zIndex: 10
         }}
@@ -111,18 +114,19 @@ const Homepage = ({ user, handleLogout }) => {
             alt="Logo"
             style={{ width: "30px", height: "30px", marginRight: "10px" }}
           />
-          <h1 style={{
-            color: "#fff",
-            fontSize: "2rem", // Slightly smaller font size
-            fontWeight: "bold",
-            letterSpacing: "-1px"
-          }}>
+          <h1
+            style={{
+              color: "#fff",
+              fontSize: "2rem",
+              fontWeight: "bold",
+              letterSpacing: "-1px"
+            }}
+          >
             Kibandaski
           </h1>
         </div>
   
         <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-          {/* Search Bar in the Navbar */}
           <input
             type="text"
             placeholder="Search restaurants..."
@@ -131,15 +135,14 @@ const Homepage = ({ user, handleLogout }) => {
             style={{
               padding: "0.8rem",
               borderRadius: "10px",
-              border: "1px solid #ffc2c5",
+              border: "1px solid#ffc2c5",
               backgroundColor: "#fff",
               width: "300px",
               fontSize: "1rem",
-              textAlign: "center", // To center the text inside the search bar
+              textAlign: "center"
             }}
           />
-          
-          {/* Cart Icon */}
+  
           <Link
             to="/cart"
             style={{
@@ -147,7 +150,7 @@ const Homepage = ({ user, handleLogout }) => {
               display: "flex",
               alignItems: "center",
               textDecoration: "none",
-              transition: "color 0.2s ease",
+              transition: "color 0.2s ease"
             }}
             onMouseEnter={(e) => (e.currentTarget.style.color = "#2d3436")}
             onMouseLeave={(e) => (e.currentTarget.style.color = "#fff")}
@@ -155,7 +158,6 @@ const Homepage = ({ user, handleLogout }) => {
             🛒 Cart
           </Link>
   
-          {/* User Profile */}
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
               <img
@@ -201,49 +203,61 @@ const Homepage = ({ user, handleLogout }) => {
         </div>
       </header>
   
-      {/* Featured Text - Moved to the Left */}
-      <section style={{
-        marginBottom: "2rem",
-        fontSize: "2rem",
-        fontWeight: "bold",
-        color: "#FFB6B9",
-        textAlign: "left", // Move it to the left
-        marginLeft: "2rem"
-      }}>
+      <section
+        style={{
+          marginBottom: "2rem",
+          fontSize: "2rem",
+          fontWeight: "bold",
+          color: "#FFB6B9",
+          textAlign: "left",
+          marginLeft: "2rem"
+        }}
+      >
         Featured on Kibandaski
       </section>
   
-      {/* Slideshow Section */}
       <section style={{ marginBottom: "2rem" }}>
-        <div style={{
-          position: "relative",
-          width: "100%",
-          height: "250px",
-          borderRadius: "15px",
-          overflow: "hidden"
-        }}>
-          <img
-            src={placeholderImages[currentSlide]}
-            alt="Happy customer or delivery person"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              transition: "opacity 0.5s ease",
-            }}
-          />
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            height: "250px",
+            borderRadius: "15px",
+            overflow: "hidden"
+          }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={currentSlide}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8 }}
+              src={placeholderImages[currentSlide]}
+              alt="Happy customer or delivery person"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                position: "absolute",
+                top: 0,
+                left: 0
+              }}
+            />
+          </AnimatePresence>
         </div>
       </section>
   
-      {/* Filters Section */}
-      <section style={{
-        marginBottom: "2rem",
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "1rem",
-        justifyContent: "center",
-        alignItems: "center"
-      }}>
+      <section
+        style={{
+          marginBottom: "2rem",
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "1rem",
+          justifyContent: "center",
+          alignItems: "center"
+        }}
+      >
         <select
           value={selectedLocation}
           onChange={(e) => setSelectedLocation(e.target.value)}
@@ -280,7 +294,6 @@ const Homepage = ({ user, handleLogout }) => {
         </select>
       </section>
   
-      {/* Restaurant Grid */}
       {loading ? (
         <p style={{ textAlign: "center", color: "#6b4a42" }}>Loading restaurants...</p>
       ) : filteredRestaurants.length === 0 ? (
@@ -288,11 +301,13 @@ const Homepage = ({ user, handleLogout }) => {
           No restaurants found for your search/filter.
         </p>
       ) : (
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-          gap: "1.5rem"
-        }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+            gap: "1.5rem"
+          }}
+        >
           {filteredRestaurants.map((restaurant) => (
             <div
               key={restaurant.id}
@@ -301,8 +316,17 @@ const Homepage = ({ user, handleLogout }) => {
                 padding: "1rem",
                 borderRadius: "10px",
                 boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                transition: "box-shadow 0.3s ease",
-                overflow: "hidden"
+                transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                overflow: "hidden",
+                cursor: "pointer"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.03)";
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
               }}
             >
               <img
@@ -310,33 +334,39 @@ const Homepage = ({ user, handleLogout }) => {
                 alt={restaurant.name}
                 style={{
                   width: "100%",
-                  height: "200px",
+                  height: "180px",
                   objectFit: "cover",
-                  borderRadius: "10px",
+                  borderRadius: "10px"
                 }}
               />
-              <h3 style={{
-                fontSize: "1.5rem",
-                fontWeight: "bold",
-                marginTop: "1rem",
-                color: "#333"
-              }}>
+              <h3
+                style={{
+                  fontSize: "1.3rem",
+                  fontWeight: "bold",
+                  marginTop: "1rem",
+                  color: "#333"
+                }}
+              >
                 {restaurant.name}
               </h3>
-              <p style={{
-                fontSize: "1rem",
-                color: "#777",
-                margin: "0.5rem 0"
-              }}>
+              <p
+                style={{
+                  fontSize: "0.95rem",
+                  color: "#777",
+                  margin: "0.5rem 0"
+                }}
+              >
                 {restaurant.location}
               </p>
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                fontSize: "1.2rem",
-                color: "#f39c9c"
-              }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  fontSize: "1.1rem",
+                  color: "#f39c9c"
+                }}
+              >
                 <span>⭐</span>
                 <span>{restaurant.rating}</span>
               </div>
@@ -344,7 +374,7 @@ const Homepage = ({ user, handleLogout }) => {
                 to={`/restaurants/${restaurant.id}/menu`}
                 style={{
                   display: "inline-block",
-                  padding: "0.8rem 1.5rem",
+                  padding: "0.6rem 1.2rem",
                   marginTop: "1rem",
                   backgroundColor: "#f39c9c",
                   color: "#fff",
@@ -362,6 +392,7 @@ const Homepage = ({ user, handleLogout }) => {
       )}
     </div>
   );
+  
   
 };
 

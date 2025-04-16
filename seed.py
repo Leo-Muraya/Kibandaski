@@ -25,9 +25,9 @@ with app.app_context():
     restaurants = [
         Restaurant(name="Dau Swahili Restaurant", location="Nairobi, Kingari Rd", rating=4.5, image="https://tb-static.uber.com/prod/image-proc/processed_images/98b402e3194a38ac4afe58443aaa9776/9e31c708e4cf73b6e3ea1bd4a9b6e16b.webp"),
         Restaurant(name="KFC", location="Nairobi, along Ngong Road", rating=3.8, image="https://tb-static.uber.com/prod/image-proc/processed_images/6832b9add2695d876619c4c2d5924ffc/30be7d11a3ed6f6183354d1933fbb6c7.jpeg"),
-        Restaurant(name="Khum Indian Cuisine", location="Nairobi, along Waiyaki Way", rating=4.2, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvOobWnO7wbRjjfA-wGdAdnrPlULCZ6k0L2w&s"),
-        Restaurant(name="Java Restaurant", location="Nairobi, Westlands", rating=4.0, image="https://media.cafejavas.co.ug/categoryImages/1722067976.png"),
-        Restaurant(name="Exodus Restaurant", location="Nairobi, Plaza Jay", rating=3.9, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYuMCo40occCxwUnXVHOkHYKoynmrGf_0jZA&s"),
+        Restaurant(name="Khum Indian Cuisine", location="Nairobi, along Waiyaki Way", rating=4.2, image="https://media.istockphoto.com/id/922783734/photo/assorted-indian-recipes-food-various.jpg?s=612x612&w=0&k=20&c=p8DepvymWfC5j7c6En2UsQ6sUM794SQMwceeBW3yQ9M="),
+        Restaurant(name="Java Restaurant", location="Nairobi, Westlands", rating=4.0, image="https://www.firsttable.co.nz/_next/image?url=https%3A%2F%2Fimages.firsttable.net%2F1292x800%2Fpublic%2Frestaurant%2F5bff3c291a%2FJAVA-Indonesian-Street-Food.jpg&w=3840&q=60"),
+        Restaurant(name="Exodus Restaurant", location="Nairobi, Plaza Jay", rating=3.9, image="https://resizer.otstatic.com/v2/photos/wide-large/4/43621675.jpg"),
     ]
 
     db.session.add_all(restaurants)

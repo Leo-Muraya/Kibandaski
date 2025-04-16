@@ -39,7 +39,7 @@ def token_required(f):
             return jsonify({"message": "Token is missing!"}), 401
             
         try:
-            data = jwt_manager._decode_token(token)  # Use JWTManager's decoding
+            data = jwt_manager._decode_token(token)  
             current_user = User.query.get(data['sub'])
                 
             if not current_user:
@@ -130,9 +130,9 @@ def get_restaurants():
         "id": r.id, 
         "name": r.name, 
         "location": r.location,
-        # "image": r.image,   # Assuming you have an `image` field in your Restaurant model
-        # "status": r.status, # Assuming you have a `status` field in your Restaurant model
-        "rating": r.rating  # Assuming you have a `rating` field in your Restaurant model
+        # "image": r.image,   
+        # "status": r.status, 
+        "rating": r.rating  
     } for r in restaurants])
 
 #get restaurant by id
